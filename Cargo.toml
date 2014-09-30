@@ -1,0 +1,27 @@
+[package]
+
+name = "gbrs"
+version = "0.0.1"
+authors = ["Zac Stewart <zgstewart@gmail.com>"]
+
+[[bin]]
+
+name = "gbrs"
+test = false
+doc = false
+
+[dependencies.graphics]
+
+git = "https://github.com/pistondevelopers/graphics"
+
+[dependencies.opengl_graphics]
+
+git = "https://github.com/pistondevelopers/opengl_graphics"
+
+[dependencies.piston]
+
+git = "https://github.com/pistondevelopers/piston/"
+
+[dependencies.sdl2_game_window]
+
+git = "https://github.com/pistondevelopers/sdl2_game_window"
