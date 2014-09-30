@@ -136,6 +136,7 @@ impl CPU {
       0x15 => self.DEC_d(),
       0x16 => self.LD_d_d8(),
       0x17 => self.RLA(),
+      0x18 => self.JR_r8(),
       0x1c => self.INC_e(),
       0x1e => self.LD_e_d8(),
       0x21 => self.LD_hl_d16(),
@@ -509,6 +510,16 @@ impl CPU {
     self.f = (self.a & 0x1) << 4;
     self.a = (self.a >> 1) | (self.a << 7);
     self.m = 4;
+  }
+
+  fn JR_r8(&mut self) {
+    match self.immediate().load(self) {
+      Byte(byte) => {
+        self.pc += byte;
+      },
+      _ => fail!()
+    }
+    self.m = 8;
   }
 
   fn LD_a16_sp(&mut self) {
