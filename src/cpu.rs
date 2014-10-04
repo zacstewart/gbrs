@@ -1,4 +1,3 @@
-use serialize::hex::ToHex;
 use mmu::MMU;
 
 static ZERO: u8 = 0x80;
