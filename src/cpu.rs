@@ -136,17 +136,28 @@ impl CPU {
       0x16 => self.LD_d_d8(),
       0x17 => self.RLA(),
       0x18 => self.JR_r8(),
+      0x19 => self.ADD_hl_de(),
+      0x1a => self.LD_a_mde(),
+      0x1b => self.DEC_de(),
       0x1c => self.INC_e(),
+      0x1d => self.DEC_e(),
       0x1e => self.LD_e_d8(),
+      0x1f => self.RRA(),
       0x21 => self.LD_hl_d16(),
       0x23 => self.INC_hl(),
       0x24 => self.INC_h(),
       0x26 => self.LD_h_d8(),
+      0x29 => self.ADD_hl_hl(),
+      0x2a => self.LD_a_mhli(),
       0x2c => self.INC_l(),
+      0x2d => self.DEC_l(),
       0x2e => self.LD_l_d8(),
       0x31 => self.LD_sp_d16(),
       0x33 => self.INC_sp(),
+      0x39 => self.ADD_hl_sp(),
+      0x3a => self.LD_a_mhld(),
       0x3c => self.INC_a(),
+      0x3d => self.DEC_a(),
       0x3e => self.LD_a_d8(),
       0x76 => self.HALT(),
       e => println!("{}", self)
@@ -265,6 +276,24 @@ impl CPU {
     self.m = 3;
   }
 
+  fn inc<AM:AddressingMode>(&mut self, am: AM) {
+    match am.load(self) {
+      Byte(byte) => {
+        am.store(self, Byte(byte + 1));
+      },
+      _ => fail!()
+    }
+  }
+
+  fn dec<AM:AddressingMode>(&mut self, am: AM) {
+    match am.load(self) {
+      Byte(byte) => {
+        am.store(self, Byte(byte - 1));
+      },
+      _ => fail!()
+    }
+  }
+
   // Ops
 
   fn NOP(&mut self) {
@@ -321,6 +350,24 @@ impl CPU {
     let am = self.address_bc();
     self.ld_a(am);
     self.m = 2;
+  }
+
+  fn LD_a_mde(&mut self) {
+    let am = self.address_de();
+    self.ld_a(am);
+    self.m = 2;
+  }
+
+  fn LD_a_mhli(&mut self) {
+    let am = self.address_de();
+    self.ld_a(am);
+    self.inc(am)
+  }
+
+  fn LD_a_mhld(&mut self) {
+    let am = self.address_de();
+    self.ld_a(am);
+    self.dec(am)
   }
 
   fn INC_bc(&mut self) {
@@ -423,6 +470,27 @@ impl CPU {
     self.m = 8;
   }
 
+  fn DEC_de(&mut self) {
+    if self.e == 0 {
+      self.d -= 1
+    }
+    self.e -= 1;
+    self.m = 8;
+  }
+
+  fn DEC_hl(&mut self) {
+    if self.l == 0 {
+      self.h -= 1
+    }
+    self.l -= 1;
+    self.m = 8;
+  }
+
+  fn DEC_sp(&mut self) {
+    self.sp -= 1;
+    self.m = 8;
+  }
+
   fn DEC_b(&mut self) {
     self.b -= 1;
     if self.b == 0 {
@@ -444,6 +512,33 @@ impl CPU {
   fn DEC_d(&mut self) {
     self.d -= 1;
     if self.d  == 0 {
+      self.f = ZERO;
+    } else {
+      self.f = 0;
+    }
+  }
+
+  fn DEC_e(&mut self) {
+    self.e -= 1;
+    if self.e  == 0 {
+      self.f = ZERO;
+    } else {
+      self.f = 0;
+    }
+  }
+
+  fn DEC_l(&mut self) {
+    self.l -= 1;
+    if self.l  == 0 {
+      self.f = ZERO;
+    } else {
+      self.f = 0;
+    }
+  }
+
+  fn DEC_a(&mut self) {
+    self.a -= 1;
+    if self.a  == 0 {
       self.f = ZERO;
     } else {
       self.f = 0;
@@ -512,6 +607,13 @@ impl CPU {
     self.m = 4;
   }
 
+  fn RRA(&mut self) {
+    let old_f = self.f.clone();
+    let carry = (self.a & 1) << 7; // take bit 1 of accumulator
+    self.f = carry >> 3;
+    self.a = (self.a >> 1) | carry;
+  }
+
   fn JR_r8(&mut self) {
     match self.immediate().load(self) {
       Byte(byte) => {
@@ -536,6 +638,21 @@ impl CPU {
   fn ADD_hl_bc(&mut self) {
     let bc = (self.b << 8) as u16 + self.c as u16;
     self.add_hl(bc);
+  }
+
+  fn ADD_hl_de(&mut self) {
+    let de = (self.d << 8) as u16 + self.e as u16;
+    self.add_hl(de);
+  }
+
+  fn ADD_hl_hl(&mut self) {
+    let hl = (self.h << 8) as u16 + self.l as u16;
+    self.add_hl(hl);
+  }
+
+  fn ADD_hl_sp(&mut self) {
+    let sp = self.sp;
+    self.add_hl(sp);
   }
 
   fn HALT(&mut self) {
