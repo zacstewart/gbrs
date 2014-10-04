@@ -252,15 +252,16 @@ impl CPU {
   // Arithmetic
 
   fn add_hl(&mut self, value: u16) {
-    let hl = (self.h << 8) as u16 + self.l as u16 + value;
-    if (hl > 65535) {
+    let mut hl = (self.h << 8) as u16 + self.l as u16;
+    if (hl + value < hl) {
       self.f |= CARRY;
     } else {
       self.f &= 0xef;
     }
+    hl += value;
 
-    self.h = ((hl >> 8) & 255) as u8;
-    self.l = (hl & 255) as u8;
+    self.h = (hl >> 8) as u8;
+    self.l = hl as u8;
     self.m = 3;
   }
 
