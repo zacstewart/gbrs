@@ -617,7 +617,7 @@ impl CPU {
   fn JR_r8(&mut self) {
     match self.immediate().load(self) {
       Byte(byte) => {
-        self.pc += byte;
+        self.pc += byte as u16;
       },
       _ => fail!()
     }
