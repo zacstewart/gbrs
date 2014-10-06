@@ -24,6 +24,25 @@ use piston::image::GenericImage;
 mod cpu;
 mod mmu;
 
+fn draw_mmu(mmu: MMU, texture: Texture, gl: &mut Gl) {
+  for i in range(0u16, 0xffff) {
+    let x = (i % 256) as u32;
+    let y = (i / 256) as u32;
+    let p = mmu.read_byte(i);
+
+    let r = (p & 0xe0);
+    let g = (p & 0x1c) << 3;
+    let b = (p & 0x7) << 5;
+    //image.put_pixel(x, y, image::Rgba(r, g, b, 255));
+  }
+
+  //texture.update(&image);
+
+  let c = Context::abs(256.0, 256.0);
+  c.rgb(1.0, 1.0, 1.0).draw(gl);
+  c.image(&texture).draw(gl);
+}
+
 fn main() {
   let opengl = piston::shader_version::opengl::OpenGL_3_2;
   let mut window: WindowSDL2 = WindowSDL2::new(
@@ -42,11 +61,6 @@ fn main() {
 
   gl.viewport(0, 0, 256, 256);
 
-  let game_iter_settings = EventSettings {
-    updates_per_second: 8000000, // 8Mhz
-    max_frames_per_second: 8000000,
-  };
-
   match File::open(&Path::new("data/Tetris.gb")).read_to_end() {
     Ok(contents) => {
       let program = contents.as_slice();
@@ -55,34 +69,11 @@ fn main() {
       let mut cpu: CPU = CPU::new(mmu);
 
       println!("Loaded ROM and beginning emulation");
-      for e in EventIterator::new(&mut window, &game_iter_settings) {
-        match e {
-          Update(args) => {
-            let instruction = cpu.take_byte();
-            cpu.execute(instruction);
-          },
-          Render(_) => {
-
-            for i in range(0u16, 0xffff) {
-              let x = (i % 256) as u32;
-              let y = (i / 256) as u32;
-              let p = mmu.read_byte(i);
-              if p != 0 {
-                println!("({}, {}) = {}", x, y, p);
-              }
-              image.put_pixel(x, y, image::Rgba(p & 0xFFF00000, p & 0x000fff00, p & 0x000000ff, 255));
-              image.put_pixel(x, y, image::Rgba(p, p << 3, p << 6, 255));
-            }
-
-            texture.update(&image);
-            let c = Context::abs(256.0, 256.0);
-            c.rgb(1.0, 1.0, 1.0).draw(gl);
-            c.image(&texture).draw(gl);
-          }
-          _ => {}
-        }
+      loop {
+        let instruction = cpu.take_byte();
+        cpu.execute(instruction);
       }
     },
-    _ => println!("Failed to read ROM")
+    _ => fail!("Failed to read ROM.")
   }
 }
