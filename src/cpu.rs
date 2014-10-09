@@ -1,8 +1,5 @@
 use mmu::MMU;
 
-static ZERO: u8 = 0x80;
-static CARRY: u8 = 0x10;
-
 enum Data {
   Byte(u8),
   Word(u16),
@@ -66,6 +63,25 @@ impl Clock {
 }
 
 #[deriving(Show)]
+pub struct Flags {
+  z: bool,
+  n: bool,
+  h: bool,
+  c: bool
+}
+
+impl Flags {
+  fn new() -> Flags {
+    Flags {
+      z: false,
+      n: false,
+      h: false,
+      c: false
+    }
+  }
+}
+
+#[deriving(Show)]
 pub struct CPU {
   mmu: MMU,
   clock: Clock,
@@ -81,16 +97,18 @@ pub struct CPU {
   e: u8,
   h: u8,
   l: u8,
-  f: u8,
 
   // Clock
   m: u16,
-  t: u16
+  t: u16,
+
+  flags: Flags
 }
 
 impl CPU {
   pub fn new(mmu: MMU) -> CPU {
     let clock = Clock::new();
+    let flags = Flags::new();
     CPU {
       mmu: mmu,
       clock: clock,
@@ -103,9 +121,9 @@ impl CPU {
       e: 0,
       h: 0,
       l: 0,
-      f: 0,
       m: 0,
-      t: 0
+      t: 0,
+      flags: flags
     }
   }
 
@@ -264,11 +282,15 @@ impl CPU {
 
   fn add_hl(&mut self, value: u16) {
     let mut hl = (self.h << 8) as u16 + self.l as u16;
+
     if (hl + value < hl) {
-      self.f |= CARRY;
+      self.flags.c = true;
     } else {
-      self.f &= 0xef;
+      self.flags.c = false;
     }
+
+    self.flags.n = false;
+
     hl += value;
 
     self.h = (hl >> 8) as u8;
@@ -402,63 +424,63 @@ impl CPU {
   fn INC_b(&mut self) {
     self.b += 1;
     if self.b == 0 {
-      self.f = ZERO;
+      self.flags.z = true;
     } else {
-      self.f = 0;
+      self.flags.z = false;
     }
   }
 
   fn INC_c(&mut self) {
     self.c += 1;
     if self.c == 0 {
-      self.f = ZERO;
+      self.flags.z = true;
     } else {
-      self.f = 0;
+      self.flags.z = false;
     }
   }
 
   fn INC_d(&mut self) {
     self.d += 1;
     if self.d == 0 {
-      self.f = ZERO;
+      self.flags.z = true;
     } else {
-      self.f = 0;
+      self.flags.z = false;
     }
   }
 
   fn INC_e(&mut self) {
     self.e += 1;
     if self.e == 0 {
-      self.f = ZERO;
+      self.flags.z = true;
     } else {
-      self.f = 0;
+      self.flags.z = false;
     }
   }
 
   fn INC_h(&mut self) {
     self.h += 1;
     if self.h == 0 {
-      self.f = ZERO;
+      self.flags.z = true;
     } else {
-      self.f = 0;
+      self.flags.z = false;
     }
   }
 
   fn INC_l(&mut self) {
     self.l += 1;
     if self.l == 0 {
-      self.f = ZERO;
+      self.flags.z = true;
     } else {
-      self.f = 0;
+      self.flags.z = false;
     }
   }
 
   fn INC_a(&mut self) {
     self.a += 1;
     if self.a == 0 {
-      self.f = ZERO;
+      self.flags.z = true;
     } else {
-      self.f = 0;
+      self.flags.z = false;
     }
   }
 
@@ -494,54 +516,54 @@ impl CPU {
   fn DEC_b(&mut self) {
     self.b -= 1;
     if self.b == 0 {
-      self.f = ZERO;
+      self.flags.z = true;
     } else {
-      self.f = 0;
+      self.flags.z = false;
     }
   }
 
   fn DEC_c(&mut self) {
     self.c -= 1;
     if self.c == 0 {
-      self.f = ZERO;
+      self.flags.z = true;
     } else {
-      self.f = 0;
+      self.flags.z = false;
     }
   }
 
   fn DEC_d(&mut self) {
     self.d -= 1;
     if self.d  == 0 {
-      self.f = ZERO;
+      self.flags.z = true;
     } else {
-      self.f = 0;
+      self.flags.z = false;
     }
   }
 
   fn DEC_e(&mut self) {
     self.e -= 1;
     if self.e  == 0 {
-      self.f = ZERO;
+      self.flags.z = true;
     } else {
-      self.f = 0;
+      self.flags.z = false;
     }
   }
 
   fn DEC_l(&mut self) {
     self.l -= 1;
     if self.l  == 0 {
-      self.f = ZERO;
+      self.flags.z = true;
     } else {
-      self.f = 0;
+      self.flags.z = false;
     }
   }
 
   fn DEC_a(&mut self) {
     self.a -= 1;
     if self.a  == 0 {
-      self.f = ZERO;
+      self.flags.z = true;
     } else {
-      self.f = 0;
+      self.flags.z = false;
     }
   }
 
@@ -588,30 +610,59 @@ impl CPU {
   }
 
   fn RLCA(&mut self) {
-    self.f = (self.a & 0x80) >> 3; // put bit 7 in carry flag
+    // put bit 7 of a in carry flag
+    if (self.a & 0x80) == 0x80 {
+      self.flags.c = true
+    } else {
+      self.flags.c = false
+    }
+
     self.a = (self.a << 1) | (self.a >> 7); // rotate a
     self.m = 4;
   }
 
   fn RLA(&mut self) {
-    let old_f = self.f.clone();
-    let carry = self.a & 0x80; // take bit 7 of accumulator
-    self.f = carry >> 3;
-    self.a = (self.a << 1) | (carry >> 7); // rotate a left, move f to end of a
+    let old_f: u8;
+    if self.flags.c {
+      old_f = 1;
+    } else {
+      old_f = 0;
+    }
+
+    if (self.a & 0x80) == 0x80 {
+      self.flags.c = true;
+    } else {
+      self.flags.c = false;
+    }
+
+    self.a = (self.a << 1) | old_f; // rotate a left, move f to end of a
     self.m = 4;
   }
 
   fn RRCA(&mut self) {
-    self.f = (self.a & 0x1) << 4;
+    if (self.a & 1) == 1 {
+      self.flags.c = true;
+    } else {
+      self.flags.c = false;
+    }
     self.a = (self.a >> 1) | (self.a << 7);
     self.m = 4;
   }
 
   fn RRA(&mut self) {
-    let old_f = self.f.clone();
-    let carry = (self.a & 1) << 7; // take bit 1 of accumulator
-    self.f = carry >> 3;
-    self.a = (self.a >> 1) | carry;
+    let old_f: u8;
+    if self.flags.c {
+      old_f = 0x80;
+    } else {
+      old_f = 0;
+    }
+    if (self.a & 1) == 1 {
+      self.flags.c = true;
+    } else {
+      self.flags.c = false;
+    }
+
+    self.a = (self.a >> 1) | old_f;
   }
 
   fn JR_r8(&mut self) {
