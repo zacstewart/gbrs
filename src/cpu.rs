@@ -172,6 +172,7 @@ impl CPU {
       0x2c => self.INC_l(),
       0x2d => self.DEC_l(),
       0x2e => self.LD_l_d8(),
+      0x30 => { let v = self.immediate(); self.jr_nc(v); },
       0x31 => self.LD_sp_d16(),
       0x33 => self.INC_sp(),
       0x39 => self.ADD_hl_sp(),
@@ -694,6 +695,17 @@ impl CPU {
     match am.load(self) {
       Byte(byte) => {
         if self.flags.z {
+          self.pc += byte as u16
+        }
+      },
+      _ => fail!("Unexpected addressing mode")
+    }
+  }
+
+  fn jr_nc<AM:AddressingMode>(&mut self, am: AM) {
+    match am.load(self) {
+      Byte(byte) => {
+        if !self.flags.c {
           self.pc += byte as u16
         }
       },
