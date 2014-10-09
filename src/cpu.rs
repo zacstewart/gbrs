@@ -153,7 +153,7 @@ impl CPU {
       0x15 => self.DEC_d(),
       0x16 => self.LD_d_d8(),
       0x17 => self.RLA(),
-      0x18 => self.JR_r8(),
+      0x18 => { let v = self.immediate(); self.jr(v) },
       0x19 => self.ADD_hl_de(),
       0x1a => self.LD_a_mde(),
       0x1b => self.DEC_de(),
@@ -665,8 +665,10 @@ impl CPU {
     self.a = (self.a >> 1) | old_f;
   }
 
-  fn JR_r8(&mut self) {
-    match self.immediate().load(self) {
+  // Jumps
+
+  fn jr<AM:AddressingMode>(&mut self, am: AM) {
+    match am.load(self) {
       Byte(byte) => {
         self.pc += byte as u16;
       },
