@@ -86,7 +86,7 @@ pub struct CPU {
   mmu: MMU,
   clock: Clock,
 
-  pub pc: u16, // Program Counter
+  pc: u16, // Program Counter
   sp: u16, // Stack pointer
 
   // Registers
