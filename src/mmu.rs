@@ -1,4 +1,3 @@
-use std::num::Num;
 use std::fmt;
 
 static MAX_ROM_SIZE: uint = 64000;
