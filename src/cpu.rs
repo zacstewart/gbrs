@@ -15,7 +15,7 @@ impl AddressingMode for ImmediateAddressingMode {
   fn load(&self, cpu: &mut CPU) -> Data {
     Byte(cpu.take_byte())
   }
-  fn store(&self, cpu: &mut CPU, value: Data) {
+  fn store(&self, _: &mut CPU, _: Data) {
     fail!("Can't write to ROM!")
   }
 }
@@ -25,7 +25,7 @@ impl AddressingMode for ImmediateWordAddressingMode {
   fn load(&self, cpu: &mut CPU) -> Data {
     Word(cpu.take_byte() as u16 + cpu.take_byte() as u16)
   }
-  fn store(&self, cpu: &mut CPU, value: Data) {
+  fn store(&self, _: &mut CPU, _: Data) {
     fail!("Can't write to ROM!")
   }
 }
