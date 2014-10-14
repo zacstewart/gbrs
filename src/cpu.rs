@@ -360,6 +360,106 @@ impl CPU {
     self.m = 3;
   }
 
+  fn add_a<AM:AddressingMode>(&mut self, am: AM) {
+    match am.load(self) {
+      Byte(byte) => {
+        let result = self.a as u16 + byte as u16;
+        self.flags.z = (result & 0xff) == 0;
+        self.flags.n = false;
+        self.flags.h = ((self.a & 0x0f) + (byte & 0x0f)) & 0x10 == 0x10;
+        self.flags.c = result > 0xff;
+        self.a = (result & 0xff) as u8
+      },
+      _ => fail!("Unexpected addressing mode")
+    }
+  }
+
+  fn adc_a<AM:AddressingMode>(&mut self, am: AM) {
+    match am.load(self) {
+      Byte(byte) => {
+        let mut result = self.a as u16 + byte as u16;
+        if self.flags.c {
+          result += 1;
+        }
+        self.flags.z = (result & 0xff) == 0;
+        self.flags.n = false;
+        self.flags.h = ((self.a & 0x0f) + (byte & 0x0f)) & 0x10 == 0x10;
+        self.flags.c = result > 0xff;
+        self.a = (result & 0xff) as u8
+      },
+      _ => fail!("Unexpected addressing mode")
+    }
+  }
+
+  fn cp<AM:AddressingMode>(&mut self, am: AM) -> u8 {
+    match am.load(self) {
+      Byte(byte) => {
+        self.flags.z = self.a == byte;
+        self.flags.n = true;
+        self.flags.h = (self.a & 0xf) < (byte & 0xf);
+        self.flags.c = self.a < byte;
+        return self.a - byte;
+      }
+      _ => fail!("Unexpected addressing mode")
+    }
+  }
+
+  fn sub<AM:AddressingMode>(&mut self, am: AM) {
+    self.a = self.cp(am);
+  }
+
+  fn sbc_a<AM:AddressingMode>(&mut self, am: AM) {
+    match am.load(self) {
+      Byte(byte) => {
+        let byte = byte - 1;
+        self.flags.z = self.a == byte;
+        self.flags.n = true;
+        self.flags.h = (self.a & 0xf) < (byte & 0xf);
+        self.flags.c = self.a < byte;
+      }
+      _ => fail!("Unexpected addressing mode")
+    }
+  }
+
+  fn and<AM:AddressingMode>(&mut self, am: AM) {
+    match am.load(self) {
+      Byte(byte) => {
+        self.a &= byte;
+        self.flags.z = self.a == 0;
+        self.flags.n = false;
+        self.flags.h = true;
+        self.flags.c = false;
+      }
+      _ => fail!("Unexpected addressing mode")
+    }
+  }
+
+  fn xor<AM:AddressingMode>(&mut self, am: AM) {
+    match am.load(self) {
+      Byte(byte) => {
+        self.a ^= byte;
+        self.flags.z = self.a == 0;
+        self.flags.n = false;
+        self.flags.h = false;
+        self.flags.c = false;
+      }
+      _ => fail!("Unexpected addressing mode")
+    }
+  }
+
+  fn or<AM:AddressingMode>(&mut self, am: AM) {
+    match am.load(self) {
+      Byte(byte) => {
+        self.a |= byte;
+        self.flags.z = self.a == 0;
+        self.flags.n = false;
+        self.flags.h = false;
+        self.flags.c = false;
+      }
+      _ => fail!("Unexpected addressing mode")
+    }
+  }
+
   fn inc<AM:AddressingMode>(&mut self, am: AM) {
     match am.load(self) {
       Byte(byte) => {
