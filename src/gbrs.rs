@@ -72,7 +72,70 @@ macro_rules! decode_op {
       0x3d => $this.dec_a(),
       0x3e => { let am = $this.immediate(); $this.ld_a(am); },
       0x3f => $this.ccf(),
+      0x40 => { let val = $this.register_b(); $this.ld_b(val); }
+      0x41 => { let val = $this.register_c(); $this.ld_b(val); }
+      0x42 => { let val = $this.register_d(); $this.ld_b(val); }
+      0x43 => { let val = $this.register_e(); $this.ld_b(val); }
+      0x44 => { let val = $this.register_h(); $this.ld_b(val); }
+      0x45 => { let val = $this.register_l(); $this.ld_b(val); }
+      0x46 => { let val = $this.address_hl(); $this.ld_b(val); }
+      0x47 => { let val = $this.register_a(); $this.ld_b(val); }
+      0x48 => { let val = $this.register_b(); $this.ld_c(val); }
+      0x49 => { let val = $this.register_c(); $this.ld_c(val); }
+      0x4a => { let val = $this.register_d(); $this.ld_c(val); }
+      0x4b => { let val = $this.register_e(); $this.ld_c(val); }
+      0x4c => { let val = $this.register_h(); $this.ld_c(val); }
+      0x4d => { let val = $this.register_l(); $this.ld_c(val); }
+      0x4e => { let val = $this.address_hl(); $this.ld_c(val); }
+      0x4f => { let val = $this.register_a(); $this.ld_c(val); }
+      0x50 => { let val = $this.register_b(); $this.ld_d(val); }
+      0x51 => { let val = $this.register_c(); $this.ld_d(val); }
+      0x52 => { let val = $this.register_d(); $this.ld_d(val); }
+      0x53 => { let val = $this.register_e(); $this.ld_d(val); }
+      0x54 => { let val = $this.register_h(); $this.ld_d(val); }
+      0x55 => { let val = $this.register_l(); $this.ld_d(val); }
+      0x56 => { let val = $this.address_hl(); $this.ld_d(val); }
+      0x57 => { let val = $this.register_a(); $this.ld_d(val); }
+      0x58 => { let val = $this.register_b(); $this.ld_e(val); }
+      0x59 => { let val = $this.register_c(); $this.ld_e(val); }
+      0x5a => { let val = $this.register_d(); $this.ld_e(val); }
+      0x5b => { let val = $this.register_e(); $this.ld_e(val); }
+      0x5c => { let val = $this.register_h(); $this.ld_e(val); }
+      0x5d => { let val = $this.register_l(); $this.ld_e(val); }
+      0x5e => { let val = $this.address_hl(); $this.ld_e(val); }
+      0x5f => { let val = $this.register_a(); $this.ld_e(val); }
+      0x60 => { let val = $this.register_b(); $this.ld_h(val); }
+      0x61 => { let val = $this.register_c(); $this.ld_h(val); }
+      0x62 => { let val = $this.register_d(); $this.ld_h(val); }
+      0x63 => { let val = $this.register_e(); $this.ld_h(val); }
+      0x64 => { let val = $this.register_h(); $this.ld_h(val); }
+      0x65 => { let val = $this.register_l(); $this.ld_h(val); }
+      0x66 => { let val = $this.address_hl(); $this.ld_h(val); }
+      0x67 => { let val = $this.register_a(); $this.ld_h(val); }
+      0x68 => { let val = $this.register_b(); $this.ld_l(val); }
+      0x69 => { let val = $this.register_c(); $this.ld_l(val); }
+      0x6a => { let val = $this.register_d(); $this.ld_l(val); }
+      0x6b => { let val = $this.register_e(); $this.ld_l(val); }
+      0x6c => { let val = $this.register_h(); $this.ld_l(val); }
+      0x6d => { let val = $this.register_l(); $this.ld_l(val); }
+      0x6e => { let val = $this.address_hl(); $this.ld_l(val); }
+      0x6f => { let val = $this.register_a(); $this.ld_l(val); }
+      0x70 => { let loc = $this.address_hl(); let val = $this.register_b(); $this.ld_mem(loc, val); }
+      0x71 => { let loc = $this.address_hl(); let val = $this.register_c(); $this.ld_mem(loc, val); }
+      0x72 => { let loc = $this.address_hl(); let val = $this.register_d(); $this.ld_mem(loc, val); }
+      0x73 => { let loc = $this.address_hl(); let val = $this.register_e(); $this.ld_mem(loc, val); }
+      0x74 => { let loc = $this.address_hl(); let val = $this.register_h(); $this.ld_mem(loc, val); }
+      0x75 => { let loc = $this.address_hl(); let val = $this.register_l(); $this.ld_mem(loc, val); }
       0x76 => $this.halt(),
+      0x77 => { let loc = $this.address_hl(); let val = $this.register_a(); $this.ld_mem(loc, val); }
+      0x78 => { let val = $this.register_b(); $this.ld_a(val); }
+      0x79 => { let val = $this.register_c(); $this.ld_a(val); }
+      0x7a => { let val = $this.register_d(); $this.ld_a(val); }
+      0x7b => { let val = $this.register_e(); $this.ld_a(val); }
+      0x7c => { let val = $this.register_h(); $this.ld_a(val); }
+      0x7d => { let val = $this.register_l(); $this.ld_a(val); }
+      0x7e => { let val = $this.address_hl(); $this.ld_a(val); }
+      0x7f => { let val = $this.register_a(); $this.ld_a(val); }
       _ => {}//println!("{}", $this)
     }
   }
