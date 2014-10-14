@@ -417,4 +417,12 @@ impl Disassembler {
   fn ret_c(&self) {
     println!("RET C");
   }
+
+  fn ret(&self) {
+    println!("RET");
+  }
+
+  fn reti(&self) {
+    println!("RETI");
+  }
 }

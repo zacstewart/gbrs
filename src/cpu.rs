@@ -72,6 +72,19 @@ impl AddressingMode for RegisterAdressingMode {
   }
 }
 
+struct SixteenBitRegisterAdressingMode {
+  value: u16
+}
+
+impl AddressingMode for SixteenBitRegisterAdressingMode {
+  fn load(&self, _: &mut CPU) -> Data {
+    Word(self.value)
+  }
+
+  fn store(&self, cpu: &mut CPU, value: Data) {
+    fail!("Can't write registers yet");
+  }
+}
 #[deriving(Show)]
 pub struct Clock {
   m: u16,
@@ -127,7 +140,8 @@ pub struct CPU {
   m: u16,
   t: u16,
 
-  flags: Flags
+  flags: Flags,
+  interrups: bool
 }
 
 impl CPU {
@@ -148,7 +162,8 @@ impl CPU {
       l: 0,
       m: 0,
       t: 0,
-      flags: flags
+      flags: flags,
+      interrups: true
     }
   }
 
@@ -169,6 +184,26 @@ impl CPU {
     let immediate = self.mmu.read_byte(self.pc);
     self.pc += 1;
     return immediate;
+  }
+
+  fn take_word(&mut self) -> u16 {
+    let immediate = self.mmu.read_word(self.pc);
+    self.pc += 2;
+    return immediate;
+  }
+
+  // Pop byte off stack
+
+  fn pop_byte(&mut self) -> u8 {
+    let value = self.mmu.read_byte(self.sp);
+    self.sp += 1;
+    return value;
+  }
+
+  fn pop_word(&mut self) -> u16 {
+    let value = self.mmu.read_word(self.sp);
+    self.sp += 2;
+    return value;
   }
 
   // Addressing
@@ -815,6 +850,94 @@ impl CPU {
       _ => fail!("Unexpected addressing mode")
     }
   }
+
+  fn jp_nz<AM:AddressingMode>(&mut self, am: AM) {
+    match am.load(self) {
+      Word(word) => {
+        if !self.flags.z {
+          self.pc = word;
+        }
+      },
+      _ => fail!("Unexpected addressing mode")
+    }
+  }
+
+  fn jp_z<AM:AddressingMode>(&mut self, am: AM) {
+    match am.load(self) {
+      Word(word) => {
+        if self.flags.z {
+          self.pc = word;
+        }
+      },
+      _ => fail!("Unexpected addressing mode")
+    }
+  }
+
+  fn jp_nc<AM:AddressingMode>(&mut self, am: AM) {
+    match am.load(self) {
+      Word(word) => {
+        if !self.flags.c {
+          self.pc = word;
+        }
+      },
+      _ => fail!("Unexpected addressing mode")
+    }
+  }
+
+  fn jp_c<AM:AddressingMode>(&mut self, am: AM) {
+    match am.load(self) {
+      Word(word) => {
+        if self.flags.c {
+          self.pc = word;
+        }
+      },
+      _ => fail!("Unexpected addressing mode")
+    }
+  }
+
+  fn jp<AM:AddressingMode>(&mut self, am: AM) {
+    match am.load(self) {
+      Word(word) => {
+        self.pc = word;
+      }
+      _ => fail!("Unexpected addressing mode")
+    }
+  }
+
+  fn ret_nz(&mut self) {
+    if !self.flags.z {
+      self.pc = self.pop_word();
+    }
+  }
+
+  fn ret_z(&mut self) {
+    if self.flags.z {
+      self.pc = self.pop_word();
+    }
+  }
+
+  fn ret_nc(&mut self) {
+    if !self.flags.c {
+      self.pc = self.pop_word();
+    }
+  }
+
+  fn ret_c(&mut self) {
+    if self.flags.c {
+      self.pc = self.pop_word();
+    }
+  }
+
+  fn ret(&mut self) {
+    self.pc = self.pop_word();
+  }
+
+  fn reti(&mut self) {
+    self.pc = self.pop_word();
+    self.interrups = true
+  }
+
+  // Loads
 
   fn ld_mem_sp<AM:AddressingMode>(&mut self, am: AM) {
     match am.load(self) {
