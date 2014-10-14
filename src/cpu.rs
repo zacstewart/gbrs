@@ -2,6 +2,7 @@ use mmu::MMU;
 
 enum Data {
   Byte(u8),
+  SignedByte(i8),
   Word(u16),
 }
 
@@ -14,6 +15,16 @@ struct ImmediateAddressingMode;
 impl AddressingMode for ImmediateAddressingMode {
   fn load(&self, cpu: &mut CPU) -> Data {
     Byte(cpu.take_byte())
+  }
+  fn store(&self, _: &mut CPU, _: Data) {
+    fail!("Can't write to ROM!")
+  }
+}
+
+struct ImmediateSignedAddressingMode;
+impl AddressingMode for ImmediateSignedAddressingMode {
+  fn load(&self, cpu: &mut CPU) -> Data {
+    SignedByte(cpu.take_byte() as i8)
   }
   fn store(&self, _: &mut CPU, _: Data) {
     fail!("Can't write to ROM!")
@@ -44,6 +55,20 @@ impl AddressingMode for MemoryAddressingMode {
       Byte(b) => cpu.mmu.write_byte(self.address, b),
       _ => {}
     }
+  }
+}
+
+struct RegisterAdressingMode {
+  value: u8
+}
+
+impl AddressingMode for RegisterAdressingMode {
+  fn load(&self, _: &mut CPU) -> Data {
+    Byte(self.value)
+  }
+
+  fn store(&self, cpu: &mut CPU, value: Data) {
+    fail!("Can't write registers yet");
   }
 }
 
@@ -127,67 +152,20 @@ impl CPU {
     }
   }
 
-  pub fn execute(&mut self, op: u8) {
-    match op {
-      0x00 => self.nop(),
-      0x01 => { let v = self.immediate_word(); self.ld_bc(v); },
-      0x02 => { let am = self.address_bc(); self.ld_mem_a(am); },
-      0x03 => self.inc_bc(),
-      0x04 => self.inc_b(),
-      0x05 => self.dec_b(),
-      0x06 => { let v = self.immediate(); self.ld_b(v); },
-      0x07 => self.rlca(),
-      0x08 => { let am = self.immediate_word(); self.ld_mem_sp(am); },
-      0x09 => self.add_hl_bc(),
-      0x0a => { let am = self.address_bc(); self.ld_a(am); },
-      0x0b => self.dec_bc(),
-      0x0c => self.inc_c(),
-      0x0d => self.dec_c(),
-      0x0e => { let am = self.immediate(); self.ld_c(am); },
-      0x0f => self.rrca(),
-      0x10 => self.stop(),
-      0x11 => { let am = self.immediate_word(); self.ld_de(am) },
-      0x12 => { let am = self.address_de(); self.ld_mem_a(am); },
-      0x13 => self.inc_de(),
-      0x14 => self.inc_d(),
-      0x15 => self.dec_d(),
-      0x16 => { let am = self.immediate(); self.ld_d(am); },
-      0x17 => self.rla(),
-      0x18 => { let v = self.immediate(); self.jr(v) },
-      0x19 => self.add_hl_de(),
-      0x1a => { let am = self.address_de(); self.ld_a(am); },
-      0x1b => self.dec_de(),
-      0x1c => self.inc_e(),
-      0x1d => self.dec_e(),
-      0x1e => { let am = self.immediate(); self.ld_e(am); },
-      0x1f => self.rra(),
-      0x20 => { let v = self.immediate(); self.jr_nz(v); },
-      0x21 => { let am = self.immediate_word(); self.ld_hl(am); },
-      0x23 => self.inc_hl(),
-      0x24 => self.inc_h(),
-      0x26 => { let am = self.immediate(); self.ld_h(am); },
-      0x28 => { let v = self.immediate(); self.jr_z(v); },
-      0x29 => self.add_hl_hl(),
-      0x2a => { let am = self.address_hli(); self.ld_a(am); },
-      0x2c => self.inc_l(),
-      0x2d => self.dec_l(),
-      0x2e => { let am = self.immediate(); self.ld_l(am); },
-      0x30 => { let v = self.immediate(); self.jr_nc(v); },
-      0x31 => { let am = self.immediate_word(); self.ld_sp(am); },
-      0x33 => self.inc_sp(),
-      0x38 => { let v = self.immediate(); self.jr_c(v); },
-      0x39 => self.add_hl_sp(),
-      0x3a => { let am = self.address_hld(); self.ld_a(am); },
-      0x3c => self.inc_a(),
-      0x3d => self.dec_a(),
-      0x3e => { let am = self.immediate(); self.ld_a(am); },
-      0x76 => self.halt(),
-      _ => println!("{}", self)
+  pub fn execute(&mut self) {
+    loop {
+      println!("{}", self);
+      self.step();
     }
+  }
+
+  fn step(&mut self) {
+    let instruction = self.take_byte();
+    decode_op!(instruction, self);
     self.clock.m += self.m;
   }
 
-  pub fn take_byte(&mut self) -> u8 {
+  fn take_byte(&mut self) -> u8 {
     let immediate = self.mmu.read_byte(self.pc);
     self.pc += 1;
     return immediate;
@@ -197,6 +175,10 @@ impl CPU {
 
   fn immediate(&mut self) -> ImmediateAddressingMode {
     ImmediateAddressingMode
+  }
+
+  fn immediate_signed(&mut self) -> ImmediateSignedAddressingMode {
+    ImmediateSignedAddressingMode
   }
 
   fn immediate_word(&mut self) -> ImmediateWordAddressingMode {
@@ -232,6 +214,50 @@ impl CPU {
     let address = (self.h as u16 << 8) + self.l as u16;
     self.dec_hl();
     self.address(address)
+  }
+
+  fn register(&self, value: u8) -> RegisterAdressingMode {
+    RegisterAdressingMode { value: value }
+  }
+
+  fn register_b(&self) -> RegisterAdressingMode {
+    let val = self.b;
+    self.register(val)
+  }
+
+  fn register_c(&self) -> RegisterAdressingMode {
+    let val = self.c;
+    self.register(val)
+  }
+
+  fn register_d(&self) -> RegisterAdressingMode {
+    let val = self.d;
+    self.register(val)
+  }
+
+  fn register_e(&self) -> RegisterAdressingMode {
+    let val = self.e;
+    self.register(val)
+  }
+
+  fn register_h(&self) -> RegisterAdressingMode {
+    let val = self.h;
+    self.register(val)
+  }
+
+  fn register_l(&self) -> RegisterAdressingMode {
+    let val = self.l;
+    self.register(val)
+  }
+
+  fn register_a(&self) -> RegisterAdressingMode {
+    let val = self.a;
+    self.register(val)
+  }
+
+  fn register_hl(&self) -> SixteenBitRegisterAdressingMode {
+    let hl = (self.h << 8) as u16 + self.l as u16;
+    SixteenBitRegisterAdressingMode { value: hl }
   }
 
   // Loads
@@ -384,6 +410,17 @@ impl CPU {
     am.store(self, data);
   }
 
+  fn ld_mem_hl<AM:AddressingMode>(&mut self, am: AM) {
+    let hl = (self.h << 8) as u16 + self.l as u16;
+    let data = Word(hl);
+    am.store(self, data);
+  }
+
+  fn ld_mem<AM1:AddressingMode,AM2:AddressingMode>(&mut self, loc: AM1, val: AM2) {
+    let data = val.load(self);
+    loc.store(self, data);
+  }
+
   fn inc_bc(&mut self) {
     if self.c == 255 {
       self.b += 1;
@@ -502,7 +539,6 @@ impl CPU {
 
   fn dec_sp(&mut self) {
     self.sp -= 1;
-    self.m = 8;
   }
 
   fn dec_b(&mut self) {
@@ -535,6 +571,15 @@ impl CPU {
   fn dec_e(&mut self) {
     self.e -= 1;
     if self.e  == 0 {
+      self.flags.z = true;
+    } else {
+      self.flags.z = false;
+    }
+  }
+
+  fn dec_h(&mut self) {
+    self.h -= 1;
+    if self.h  == 0 {
       self.flags.z = true;
     } else {
       self.flags.z = false;
@@ -619,7 +664,7 @@ impl CPU {
 
   fn jr<AM:AddressingMode>(&mut self, am: AM) {
     match am.load(self) {
-      Byte(byte) => {
+      SignedByte(byte) => {
         self.pc += byte as u16;
       },
       _ => fail!()
@@ -629,7 +674,7 @@ impl CPU {
 
   fn jr_nz<AM:AddressingMode>(&mut self, am: AM) {
     match am.load(self) {
-      Byte(byte) => {
+      SignedByte(byte) => {
         if !self.flags.z {
           self.pc += byte as u16
         }
@@ -640,7 +685,7 @@ impl CPU {
 
   fn jr_z<AM:AddressingMode>(&mut self, am: AM) {
     match am.load(self) {
-      Byte(byte) => {
+      SignedByte(byte) => {
         if self.flags.z {
           self.pc += byte as u16
         }
@@ -651,7 +696,7 @@ impl CPU {
 
   fn jr_nc<AM:AddressingMode>(&mut self, am: AM) {
     match am.load(self) {
-      Byte(byte) => {
+      SignedByte(byte) => {
         if !self.flags.c {
           self.pc += byte as u16
         }
@@ -662,7 +707,7 @@ impl CPU {
 
   fn jr_c<AM:AddressingMode>(&mut self, am: AM) {
     match am.load(self) {
-      Byte(byte) => {
+      SignedByte(byte) => {
         if self.flags.c {
           self.pc += byte as u16
         }
@@ -708,6 +753,39 @@ impl CPU {
 
   fn stop(&mut self) {
     self.pc += 1;
+  }
+
+  // Miscellaneous
+
+  fn daa(&mut self) {
+    self.flags.c = false;
+    if (self.a & 0x0f) > 9 {
+      self.a += 0x06;
+    }
+
+    if ((self.a & 0xf0) >> 4) > 9 {
+      self.flags.c = true;
+      self.a += 0x60;
+    }
+
+    self.flags.h = false;
+    self.flags.z = self.a == 0;
+  }
+
+  fn cpl(&mut self) {
+    self.a = !self.a;
+  }
+
+  fn scf(&mut self) {
+    self.flags.n = false;
+    self.flags.h = false;
+    self.flags.c = true;
+  }
+
+  fn ccf(&mut self) {
+    self.flags.n = false;
+    self.flags.h = false;
+    self.flags.c = !self.flags.c;
   }
 }
 
