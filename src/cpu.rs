@@ -208,6 +208,12 @@ impl CPU {
     return value;
   }
 
+  fn push_word(&mut self) {
+    let val = self.take_word();
+    self.mmu.write_word(self.sp, val);
+    self.sp -= 2;
+  }
+
   // Addressing
 
   fn immediate(&mut self) -> ImmediateAddressingMode {
@@ -980,6 +986,54 @@ impl CPU {
   fn reti(&mut self) {
     self.pc = self.pop_word();
     self.interrups = true
+  }
+
+  fn call_nz<AM:AddressingMode>(&mut self, am: AM) {
+    if !self.flags.z {
+      self.push_word();
+      self.pc = match am.load(self) {
+        Word(w) => w,
+        _ => fail!("Unexpected addressing mode!")
+      }
+    }
+  }
+
+  fn call_z<AM:AddressingMode>(&mut self, am: AM) {
+    if self.flags.z {
+      self.push_word();
+      self.pc = match am.load(self) {
+        Word(w) => w,
+        _ => fail!("Unexpected addressing mode!")
+      }
+    }
+  }
+
+  fn call_nc<AM:AddressingMode>(&mut self, am: AM) {
+    if !self.flags.c {
+      self.push_word();
+      self.pc = match am.load(self) {
+        Word(w) => w,
+        _ => fail!("Unexpected addressing mode!")
+      }
+    }
+  }
+
+  fn call_c<AM:AddressingMode>(&mut self, am: AM) {
+    if self.flags.c {
+      self.push_word();
+      self.pc = match am.load(self) {
+        Word(w) => w,
+        _ => fail!("Unexpected addressing mode!")
+      }
+    }
+  }
+
+  fn call<AM:AddressingMode>(&mut self, am: AM) {
+    self.push_word();
+    self.pc = match am.load(self) {
+      Word(w) => w,
+      _ => fail!("Unexpected addressing mode!")
+    }
   }
 
   // Loads

@@ -58,6 +58,13 @@ impl MMU {
       _ => { fail!("Wrote memory out of bounds: {}", address) }
     }
   }
+
+  pub fn write_word(&mut self, address: u16, value: u16) {
+    let upper = ((value & 0xff00) >> 8) as u8;
+    let lower = (value & 0xff) as u8;
+    self.write_byte(address, upper);
+    self.write_byte(address, lower);
+  }
 }
 
 impl fmt::Show for MMU {

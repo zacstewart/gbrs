@@ -442,4 +442,24 @@ impl Disassembler {
   fn reti(&self) {
     println!("RETI");
   }
+
+  fn call_nz(&self, am: String) {
+    println!("CALL NZ,{}", am);
+  }
+
+  fn call_z(&self, am: String) {
+    println!("CALL Z,{}", am);
+  }
+
+  fn call_nc(&self, am: String) {
+    println!("CALL NC,{}", am);
+  }
+
+  fn call_c(&self, am: String) {
+    println!("CALL C,{}", am);
+  }
+
+  fn call(&self, am: String) {
+    println!("CALL {}", am);
+  }
 }
