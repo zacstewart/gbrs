@@ -180,6 +180,8 @@ impl CPU {
     self.clock.m += self.m;
   }
 
+  // Fetch from program
+
   fn take_byte(&mut self) -> u8 {
     let immediate = self.mmu.read_byte(self.pc);
     self.pc += 1;
@@ -192,7 +194,7 @@ impl CPU {
     return immediate;
   }
 
-  // Pop byte off stack
+  // Pop off stack
 
   fn pop_byte(&mut self) -> u8 {
     let value = self.mmu.read_byte(self.sp);
@@ -295,6 +297,32 @@ impl CPU {
     SixteenBitRegisterAdressingMode { value: hl }
   }
 
+  // 16-bit register sets
+
+  fn set_bc(&mut self, value: u16) {
+    self.b = get_upper_bytes(value);
+    self.c = get_lower_bytes(value);
+  }
+
+  fn set_de(&mut self, value: u16) {
+    self.d = get_upper_bytes(value);
+    self.e = get_lower_bytes(value);
+  }
+
+  fn set_hl(&mut self, value: u16) {
+    self.h = get_upper_bytes(value);
+    self.l = get_lower_bytes(value);
+  }
+
+  fn set_af(&mut self, value: u16) {
+    self.a = get_upper_bytes(value);
+    let lower = get_lower_bytes(value);
+    self.flags.z = (lower & 0x80) != 0;
+    self.flags.n = (lower & 0x40) != 0;
+    self.flags.c = (lower & 0x20) != 0;
+    self.flags.h = (lower & 0x10) != 0;
+  }
+
   // Loads
 
   fn ld_b<AM:AddressingMode>(&mut self, am: AM) {
@@ -361,6 +389,26 @@ impl CPU {
       },
       _ => fail!("Unexpected addressing mode")
     }
+  }
+
+  fn pop_bc(&mut self) {
+    let value = self.pop_word();
+    self.set_bc(value);
+  }
+
+  fn pop_de(&mut self) {
+    let value = self.pop_word();
+    self.set_de(value);
+  }
+
+  fn pop_hl(&mut self) {
+    let value = self.pop_word();
+    self.set_hl(value);
+  }
+
+  fn pop_af(&mut self) {
+    let value = self.pop_word();
+    self.set_af(value);
   }
 
   // Stores
@@ -532,10 +580,7 @@ impl CPU {
 
   fn ld_hl<AM:AddressingMode>(&mut self, am: AM) {
     match am.load(self) {
-      Word(word) => {
-        self.h = get_upper_bytes(word);
-        self.l = get_lower_bytes(word);
-      },
+      Word(word) => self.set_hl(word),
       _ => fail!("Unexpected addressing mode")
     }
   }

@@ -201,17 +201,21 @@ macro_rules! decode_op {
       0xbe => { let val = $this.address_hl(); $this.cp(val); }
       0xbf => { let val = $this.register_a(); $this.cp(val); }
       0xc0 => $this.ret_nz(),
+      0xc1 => $this.pop_bc(),
       0xc2 => { let loc = $this.immediate_word(); $this.jp_nz(loc); }
       0xc3 => { let loc = $this.immediate_word(); $this.jp(loc); }
       0xc8 => $this.ret_z(),
       0xc9 => $this.ret(),
       0xca => { let loc = $this.immediate_word(); $this.jp_z(loc); }
       0xd0 => $this.ret_nc(),
+      0xd1 => $this.pop_de(),
       0xd2 => { let loc = $this.immediate_word(); $this.jp_nc(loc); }
       0xd8 => $this.ret_c(),
       0xd9 => $this.reti(),
       0xda => { let loc = $this.immediate_word(); $this.jp_c(loc); }
+      0xe1 => $this.pop_hl(),
       0xe9 => { let loc = $this.register_hl(); $this.jp(loc); }
+      0xf1 => $this.pop_af(),
       _ => {}//println!("{}", $this)
     }
   }

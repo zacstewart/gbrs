@@ -194,6 +194,23 @@ impl Disassembler {
   fn ld_mem(&self, loc: String, val: String) {
     println!("LD {}, {}", loc, val);
   }
+
+  fn pop_bc(&self) {
+    println!("POP BC");
+  }
+
+  fn pop_de(&self) {
+    println!("POP DE");
+  }
+
+  fn pop_hl(&self) {
+    println!("POP HL");
+  }
+
+  fn pop_af(&self) {
+    println!("POP AF");
+  }
+
   // Increments & Decrements
 
   fn inc(&self, am: String) {
