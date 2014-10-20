@@ -208,7 +208,23 @@ impl Disassembler {
   }
 
   fn pop_af(&self) {
-    println!("POP AF");
+    println!("PUSH AF");
+  }
+
+  fn push_bc(&self) {
+    println!("PUSH BC");
+  }
+
+  fn push_de(&self) {
+    println!("PUSH DE");
+  }
+
+  fn push_hl(&self) {
+    println!("PUSH HL");
+  }
+
+  fn push_af(&self) {
+    println!("PUSH AF");
   }
 
   // Increments & Decrements

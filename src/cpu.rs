@@ -208,9 +208,8 @@ impl CPU {
     return value;
   }
 
-  fn push_word(&mut self) {
-    let val = self.take_word();
-    self.mmu.write_word(self.sp, val);
+  fn push_word(&mut self, value: u16) {
+    self.mmu.write_word(self.sp, value);
     self.sp -= 2;
   }
 
@@ -329,6 +328,35 @@ impl CPU {
     self.flags.h = (lower & 0x10) != 0;
   }
 
+  // 16-bit register gets
+
+  fn get_bc(self) -> u16 {
+    let upper = self.b as u16 << 8;
+    let lower = self.c as u16;
+    return upper | lower;
+  }
+
+  fn get_de(self) -> u16 {
+    let upper = self.d as u16 << 8;
+    let lower = self.e as u16;
+    return upper | lower;
+  }
+
+  fn get_hl(self) -> u16 {
+    let upper = self.h as u16 << 8;
+    let lower = self.l as u16;
+    return upper | lower;
+  }
+
+  fn get_af(self) -> u16 {
+    let upper = self.a as u16 << 8;
+    let mut lower = 0u16;
+    if self.flags.z { lower |= 0x80; }
+    if self.flags.n { lower |= 0x40; }
+    if self.flags.c { lower |= 0x20; }
+    if self.flags.h { lower |= 0x10; }
+    return upper | lower;
+  }
   // Loads
 
   fn ld_b<AM:AddressingMode>(&mut self, am: AM) {
@@ -415,6 +443,26 @@ impl CPU {
   fn pop_af(&mut self) {
     let value = self.pop_word();
     self.set_af(value);
+  }
+
+  fn push_bc(&mut self) {
+    let value = self.get_bc();
+    self.push_word(value);
+  }
+
+  fn push_de(&mut self) {
+    let value = self.get_de();
+    self.push_word(value);
+  }
+
+  fn push_hl(&mut self) {
+    let value = self.get_hl();
+    self.push_word(value);
+  }
+
+  fn push_af(&mut self) {
+    let value = self.get_af();
+    self.push_word(value);
   }
 
   // Stores
@@ -990,7 +1038,8 @@ impl CPU {
 
   fn call_nz<AM:AddressingMode>(&mut self, am: AM) {
     if !self.flags.z {
-      self.push_word();
+      let val = self.take_word();
+      self.push_word(val);
       self.pc = match am.load(self) {
         Word(w) => w,
         _ => fail!("Unexpected addressing mode!")
@@ -1000,7 +1049,8 @@ impl CPU {
 
   fn call_z<AM:AddressingMode>(&mut self, am: AM) {
     if self.flags.z {
-      self.push_word();
+      let val = self.take_word();
+      self.push_word(val);
       self.pc = match am.load(self) {
         Word(w) => w,
         _ => fail!("Unexpected addressing mode!")
@@ -1010,7 +1060,8 @@ impl CPU {
 
   fn call_nc<AM:AddressingMode>(&mut self, am: AM) {
     if !self.flags.c {
-      self.push_word();
+      let val = self.take_word();
+      self.push_word(val);
       self.pc = match am.load(self) {
         Word(w) => w,
         _ => fail!("Unexpected addressing mode!")
@@ -1020,7 +1071,8 @@ impl CPU {
 
   fn call_c<AM:AddressingMode>(&mut self, am: AM) {
     if self.flags.c {
-      self.push_word();
+      let val = self.take_word();
+      self.push_word(val);
       self.pc = match am.load(self) {
         Word(w) => w,
         _ => fail!("Unexpected addressing mode!")
@@ -1029,7 +1081,8 @@ impl CPU {
   }
 
   fn call<AM:AddressingMode>(&mut self, am: AM) {
-    self.push_word();
+      let val = self.take_word();
+      self.push_word(val);
     self.pc = match am.load(self) {
       Word(w) => w,
       _ => fail!("Unexpected addressing mode!")

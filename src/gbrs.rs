@@ -205,6 +205,7 @@ macro_rules! decode_op {
       0xc2 => { let loc = $this.immediate_word(); $this.jp_nz(loc); }
       0xc3 => { let loc = $this.immediate_word(); $this.jp(loc); }
       0xc4 => { let val = $this.immediate_word(); $this.call_nz(val); }
+      0xc5 => $this.push_bc(),
       0xc8 => $this.ret_z(),
       0xc9 => $this.ret(),
       0xca => { let loc = $this.immediate_word(); $this.jp_z(loc); }
@@ -215,13 +216,16 @@ macro_rules! decode_op {
       0xd2 => { let loc = $this.immediate_word(); $this.jp_nc(loc); }
       0xd3 => {}
       0xd4 => { let val = $this.immediate_word(); $this.call_nc(val); }
+      0xd5 => $this.push_de(),
       0xd8 => $this.ret_c(),
       0xd9 => $this.reti(),
       0xda => { let loc = $this.immediate_word(); $this.jp_c(loc); }
       0xdc => { let val = $this.immediate_word(); $this.call_c(val); }
       0xe1 => $this.pop_hl(),
+      0xe5 => $this.push_hl(),
       0xe9 => { let loc = $this.register_hl(); $this.jp(loc); }
       0xf1 => $this.pop_af(),
+      0xf5 => $this.push_af(),
       _ => {}//println!("{}", $this)
     }
   }
