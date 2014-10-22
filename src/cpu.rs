@@ -1089,6 +1089,12 @@ impl CPU {
     }
   }
 
+  fn rst(&mut self, address: u16) {
+    let pc = self.pc;
+    self.push_word(pc);
+    self.pc = address;
+  }
+
   // Loads
 
   fn ld_mem_sp<AM:AddressingMode>(&mut self, am: AM) {

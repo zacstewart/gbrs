@@ -478,4 +478,8 @@ impl Disassembler {
   fn call(&self, am: String) {
     println!("CALL {}", am);
   }
+
+  fn rst(&self, address: u16) {
+    println!("RST {:x}H", address);
+  }
 }
