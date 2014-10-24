@@ -213,6 +213,7 @@ macro_rules! decode_op {
       0xca => { let loc = $this.immediate_word(); $this.jp_z(loc); }
       0xcc => { let val = $this.immediate_word(); $this.call_z(val); }
       0xcd => { let val = $this.immediate_word(); $this.call(val); }
+      0xce => { let val = $this.immediate(); $this.adc_a(val); }
       0xcf => $this.rst(0x08),
       0xd0 => $this.ret_nc(),
       0xd1 => $this.pop_de(),
@@ -226,17 +227,20 @@ macro_rules! decode_op {
       0xd9 => $this.reti(),
       0xda => { let loc = $this.immediate_word(); $this.jp_c(loc); }
       0xdc => { let val = $this.immediate_word(); $this.call_c(val); }
+      0xde => { let val = $this.immediate(); $this.sbc_a(val); }
       0xdf => $this.rst(0x18),
       0xe1 => $this.pop_hl(),
       0xe5 => $this.push_hl(),
       0xe6 => { let val = $this.immediate(); $this.and(val); }
       0xe7 => $this.rst(0x20),
       0xe9 => { let loc = $this.register_hl(); $this.jp(loc); }
+      0xee => { let val = $this.immediate(); $this.xor(val); }
       0xef => $this.rst(0x28),
       0xf1 => $this.pop_af(),
       0xf5 => $this.push_af(),
       0xf6 => { let val = $this.immediate(); $this.or(val); }
       0xf7 => $this.rst(0x30),
+      0xfe => { let val = $this.immediate(); $this.cp(val); }
       0xff => $this.rst(0x38),
       _ => {}//println!("{}", $this)
     }
