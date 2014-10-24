@@ -1,16 +1,14 @@
 use std::fmt;
 
-static MAX_ROM_SIZE: uint = 64000;
-
 pub struct MMU {
-  pub program: [u8, ..MAX_ROM_SIZE],
+  pub program: [u8, ..64000],
   pub working_ram: [u8, ..0x2000]
 }
 
 impl MMU {
   pub fn new() -> MMU {
     MMU {
-      program: [0, ..MAX_ROM_SIZE],
+      program: [0, ..64000],
       working_ram: [0, ..0x2000]
     }
   }
