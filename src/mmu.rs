@@ -37,7 +37,7 @@ impl MMU {
   }
 
   pub fn read_word(&self, address: u16) -> u16 {
-    self.read_byte(address) as u16 + self.read_byte(address + 1) as u16
+    (self.read_byte(address) as u16 << 8) | self.read_byte(address + 1) as u16
   }
 
   pub fn write_byte(&mut self, address: u16, value: u8) {
