@@ -227,7 +227,9 @@ macro_rules! decode_op {
       0xd8 => $this.ret_c(),
       0xd9 => $this.reti(),
       0xda => { let loc = $this.immediate_word(); $this.jp_c(loc); }
+      0xdb => {}
       0xdc => { let val = $this.immediate_word(); $this.call_c(val); }
+      0xdd => {}
       0xde => { let val = $this.immediate(); $this.sbc_a(val); }
       0xdf => $this.rst(0x18),
       0xe1 => $this.pop_hl(),
