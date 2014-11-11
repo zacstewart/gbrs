@@ -264,6 +264,6 @@ fn main() {
       disasm.disassemble(contents.len());
       cpu.execute();
     },
-    _ => fail!("Failed to read ROM.")
+    _ => panic!("Failed to read ROM.")
   }
 }

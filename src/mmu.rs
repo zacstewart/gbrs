@@ -32,7 +32,7 @@ impl MMU {
       0xfea0...0xfeff => 0,
       0xff00...0xff7f => 0, // Memory-mapped I/O
       0xff80...0xffff => 0, // Zero-page RAM
-      _ => { fail!("Read memory out of bounds: {}", address) }
+      _ => { panic!("Read memory out of bounds: {}", address) }
     }
   }
 
@@ -53,7 +53,7 @@ impl MMU {
       0xfe00...0xfe9f => {}, // Sprite info
       0xff00...0xff7f => {}, // Memory-mapped I/O
       0xff80...0xffff => {}, // Zero-page RAM
-      _ => { fail!("Wrote memory out of bounds: {}", address) }
+      _ => { panic!("Wrote memory out of bounds: {}", address) }
     }
   }
 

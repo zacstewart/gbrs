@@ -17,7 +17,7 @@ impl AddressingMode for ImmediateAddressingMode {
     Byte(cpu.take_byte())
   }
   fn store(&self, _: &mut CPU, _: Data) {
-    fail!("Can't write to ROM!")
+    panic!("Can't write to ROM!")
   }
 }
 
@@ -27,7 +27,7 @@ impl AddressingMode for ImmediateSignedAddressingMode {
     SignedByte(cpu.take_byte() as i8)
   }
   fn store(&self, _: &mut CPU, _: Data) {
-    fail!("Can't write to ROM!")
+    panic!("Can't write to ROM!")
   }
 }
 
@@ -37,7 +37,7 @@ impl AddressingMode for ImmediateWordAddressingMode {
     Word(cpu.take_byte() as u16 + cpu.take_byte() as u16)
   }
   fn store(&self, _: &mut CPU, _: Data) {
-    fail!("Can't write to ROM!")
+    panic!("Can't write to ROM!")
   }
 }
 
@@ -68,7 +68,7 @@ impl AddressingMode for RegisterAdressingMode {
   }
 
   fn store(&self, cpu: &mut CPU, value: Data) {
-    fail!("Can't write registers yet");
+    panic!("Can't write registers yet");
   }
 }
 
@@ -82,7 +82,7 @@ impl AddressingMode for SixteenBitRegisterAdressingMode {
   }
 
   fn store(&self, cpu: &mut CPU, value: Data) {
-    fail!("Can't write registers yet");
+    panic!("Can't write registers yet");
   }
 }
 #[deriving(Show)]
@@ -421,7 +421,7 @@ impl CPU {
         self.e = get_upper_bytes(word);
         self.d = get_lower_bytes(word);
       },
-      _ => fail!("Unexpected addressing mode")
+      _ => panic!("Unexpected addressing mode")
     }
   }
 
@@ -507,7 +507,7 @@ impl CPU {
         self.flags.c = result > 0xff;
         self.a = (result & 0xff) as u8
       },
-      _ => fail!("Unexpected addressing mode")
+      _ => panic!("Unexpected addressing mode")
     }
   }
 
@@ -524,7 +524,7 @@ impl CPU {
         self.flags.c = result > 0xff;
         self.a = (result & 0xff) as u8
       },
-      _ => fail!("Unexpected addressing mode")
+      _ => panic!("Unexpected addressing mode")
     }
   }
 
@@ -537,7 +537,7 @@ impl CPU {
         self.flags.c = self.a < byte;
         return self.a - byte;
       }
-      _ => fail!("Unexpected addressing mode")
+      _ => panic!("Unexpected addressing mode")
     }
   }
 
@@ -554,7 +554,7 @@ impl CPU {
         self.flags.h = (self.a & 0xf) < (byte & 0xf);
         self.flags.c = self.a < byte;
       }
-      _ => fail!("Unexpected addressing mode")
+      _ => panic!("Unexpected addressing mode")
     }
   }
 
@@ -567,7 +567,7 @@ impl CPU {
         self.flags.h = true;
         self.flags.c = false;
       }
-      _ => fail!("Unexpected addressing mode")
+      _ => panic!("Unexpected addressing mode")
     }
   }
 
@@ -580,7 +580,7 @@ impl CPU {
         self.flags.h = false;
         self.flags.c = false;
       }
-      _ => fail!("Unexpected addressing mode")
+      _ => panic!("Unexpected addressing mode")
     }
   }
 
@@ -593,7 +593,7 @@ impl CPU {
         self.flags.h = false;
         self.flags.c = false;
       }
-      _ => fail!("Unexpected addressing mode")
+      _ => panic!("Unexpected addressing mode")
     }
   }
 
@@ -602,7 +602,7 @@ impl CPU {
       Byte(byte) => {
         am.store(self, Byte(byte + 1));
       },
-      _ => fail!()
+      _ => panic!()
     }
   }
 
@@ -611,7 +611,7 @@ impl CPU {
       Byte(byte) => {
         am.store(self, Byte(byte - 1));
       },
-      _ => fail!()
+      _ => panic!()
     }
   }
 
@@ -628,14 +628,14 @@ impl CPU {
         self.b = get_upper_bytes(word);
         self.c = get_lower_bytes(word);
       },
-      _ => fail!("Unexpected addressing mode")
+      _ => panic!("Unexpected addressing mode")
     }
   }
 
   fn ld_hl<AM:AddressingMode>(&mut self, am: AM) {
     match am.load(self) {
       Word(word) => self.set_hl(word),
-      _ => fail!("Unexpected addressing mode")
+      _ => panic!("Unexpected addressing mode")
     }
   }
 
@@ -901,7 +901,7 @@ impl CPU {
       SignedByte(byte) => {
         self.pc += byte as u16;
       },
-      _ => fail!()
+      _ => panic!()
     }
     self.m = 8;
   }
@@ -913,7 +913,7 @@ impl CPU {
           self.pc += byte as u16
         }
       },
-      _ => fail!("Unexpected addressing mode")
+      _ => panic!("Unexpected addressing mode")
     }
   }
 
@@ -924,7 +924,7 @@ impl CPU {
           self.pc += byte as u16
         }
       },
-      _ => fail!("Unexpected addressing mode")
+      _ => panic!("Unexpected addressing mode")
     }
   }
 
@@ -935,7 +935,7 @@ impl CPU {
           self.pc += byte as u16
         }
       },
-      _ => fail!("Unexpected addressing mode")
+      _ => panic!("Unexpected addressing mode")
     }
   }
 
@@ -946,7 +946,7 @@ impl CPU {
           self.pc += byte as u16
         }
       },
-      _ => fail!("Unexpected addressing mode")
+      _ => panic!("Unexpected addressing mode")
     }
   }
 
@@ -957,7 +957,7 @@ impl CPU {
           self.pc = word;
         }
       },
-      _ => fail!("Unexpected addressing mode")
+      _ => panic!("Unexpected addressing mode")
     }
   }
 
@@ -968,7 +968,7 @@ impl CPU {
           self.pc = word;
         }
       },
-      _ => fail!("Unexpected addressing mode")
+      _ => panic!("Unexpected addressing mode")
     }
   }
 
@@ -979,7 +979,7 @@ impl CPU {
           self.pc = word;
         }
       },
-      _ => fail!("Unexpected addressing mode")
+      _ => panic!("Unexpected addressing mode")
     }
   }
 
@@ -990,7 +990,7 @@ impl CPU {
           self.pc = word;
         }
       },
-      _ => fail!("Unexpected addressing mode")
+      _ => panic!("Unexpected addressing mode")
     }
   }
 
@@ -999,7 +999,7 @@ impl CPU {
       Word(word) => {
         self.pc = word;
       }
-      _ => fail!("Unexpected addressing mode")
+      _ => panic!("Unexpected addressing mode")
     }
   }
 
@@ -1042,7 +1042,7 @@ impl CPU {
       self.push_word(val);
       self.pc = match am.load(self) {
         Word(w) => w,
-        _ => fail!("Unexpected addressing mode!")
+        _ => panic!("Unexpected addressing mode!")
       }
     }
   }
@@ -1053,7 +1053,7 @@ impl CPU {
       self.push_word(val);
       self.pc = match am.load(self) {
         Word(w) => w,
-        _ => fail!("Unexpected addressing mode!")
+        _ => panic!("Unexpected addressing mode!")
       }
     }
   }
@@ -1064,7 +1064,7 @@ impl CPU {
       self.push_word(val);
       self.pc = match am.load(self) {
         Word(w) => w,
-        _ => fail!("Unexpected addressing mode!")
+        _ => panic!("Unexpected addressing mode!")
       }
     }
   }
@@ -1075,7 +1075,7 @@ impl CPU {
       self.push_word(val);
       self.pc = match am.load(self) {
         Word(w) => w,
-        _ => fail!("Unexpected addressing mode!")
+        _ => panic!("Unexpected addressing mode!")
       }
     }
   }
@@ -1085,7 +1085,7 @@ impl CPU {
       self.push_word(val);
     self.pc = match am.load(self) {
       Word(w) => w,
-      _ => fail!("Unexpected addressing mode!")
+      _ => panic!("Unexpected addressing mode!")
     }
   }
 
@@ -1129,7 +1129,7 @@ impl CPU {
   }
 
   fn halt(&mut self) {
-    //fail!("HALT");
+    //panic!("HALT");
   }
 
   fn stop(&mut self) {
