@@ -639,6 +639,19 @@ impl CPU {
     }
   }
 
+  fn ldh_a<AM:AddressingMode>(&mut self, am: AM) {
+    match am.load(self) {
+      Byte(b) => {
+        let mem = self.address(b as u16 + 0xff00);
+        match mem.load(self) {
+          Byte(val) => self.a = val,
+          _ => panic!("Unexpected addressing mode")
+        }
+      }
+      _ => panic!("Unexpected addressing mode")
+    }
+  }
+
   fn ld_mem_a<AM:AddressingMode>(&mut self, am: AM) {
     let data = Byte(self.a);
     am.store(self, data);
@@ -653,6 +666,17 @@ impl CPU {
   fn ld_mem<AM1:AddressingMode,AM2:AddressingMode>(&mut self, loc: AM1, val: AM2) {
     let data = val.load(self);
     loc.store(self, data);
+  }
+
+  fn ldh_mem<AM1:AddressingMode,AM2:AddressingMode>(&mut self, loc: AM1, val: AM2) {
+    match loc.load(self) {
+      Byte(b) => {
+        let val = val.load(self);
+        let loc = self.address(b as u16 + 0xff00);
+        loc.store(self, val);
+      }
+      _ => {}
+    }
   }
 
   fn inc_bc(&mut self) {

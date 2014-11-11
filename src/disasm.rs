@@ -179,6 +179,10 @@ impl Disassembler {
     println!("LD A,{}", am);
   }
 
+  fn ldh_a(&self, am: String) {
+    println!("LDH A,{}", am);
+  }
+
   fn ld_mem_sp(&self, am: String) {
     println!("LD {},SP", am);
   }
@@ -193,6 +197,10 @@ impl Disassembler {
 
   fn ld_mem(&self, loc: String, val: String) {
     println!("LD {}, {}", loc, val);
+  }
+
+  fn ldh_mem(&self, loc: String, val: String) {
+    println!("LDH {}, {}", loc, val);
   }
 
   fn pop_bc(&self) {

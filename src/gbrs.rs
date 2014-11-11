@@ -232,6 +232,7 @@ macro_rules! decode_op {
       0xdd => {}
       0xde => { let val = $this.immediate(); $this.sbc_a(val); }
       0xdf => $this.rst(0x18),
+      0xe0 => { let loc = $this.immediate(); let val = $this.register_a(); $this.ldh_mem(loc, val); }
       0xe1 => $this.pop_hl(),
       0xe5 => $this.push_hl(),
       0xe6 => { let val = $this.immediate(); $this.and(val); }
@@ -239,6 +240,7 @@ macro_rules! decode_op {
       0xe9 => { let loc = $this.register_hl(); $this.jp(loc); }
       0xee => { let val = $this.immediate(); $this.xor(val); }
       0xef => $this.rst(0x28),
+      0xf0 => { let val = $this.immediate(); $this.ldh_a(val); }
       0xf1 => $this.pop_af(),
       0xf5 => $this.push_af(),
       0xf6 => { let val = $this.immediate(); $this.or(val); }
