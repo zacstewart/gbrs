@@ -71,6 +71,10 @@ impl Disassembler {
     "(HL-)".to_string()
   }
 
+  fn address_c(&self) -> String {
+    "(C)".to_string()
+  }
+
   fn register_b(&self) -> String {
     "B".to_string()
   }

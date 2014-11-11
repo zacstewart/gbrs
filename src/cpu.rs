@@ -258,6 +258,11 @@ impl CPU {
     self.address(address)
   }
 
+  fn address_c(&mut self) -> MemoryAddressingMode {
+    let address = 0xff00 + self.c as u16;
+    self.address(address)
+  }
+
   fn register(&self, value: u8) -> RegisterAdressingMode {
     RegisterAdressingMode { value: value }
   }
