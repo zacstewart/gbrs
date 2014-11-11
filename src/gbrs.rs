@@ -211,6 +211,7 @@ macro_rules! decode_op {
       0xc8 => $this.ret_z(),
       0xc9 => $this.ret(),
       0xca => { let loc = $this.immediate_word(); $this.jp_z(loc); }
+      0xcb => { let op = $this.take_byte(); decode_prefixed_op!(op, $this); }
       0xcc => { let val = $this.immediate_word(); $this.call_z(val); }
       0xcd => { let val = $this.immediate_word(); $this.call(val); }
       0xce => { let val = $this.immediate(); $this.adc_a(val); }
@@ -243,6 +244,13 @@ macro_rules! decode_op {
       0xfe => { let val = $this.immediate(); $this.cp(val); }
       0xff => $this.rst(0x38),
       _ => {}//println!("{}", $this)
+    }
+  }
+}
+macro_rules! decode_prefixed_op {
+  ($op:expr, $this:ident) => {
+    match $op {
+      _ => println!("Prefixed op: {}", $op)
     }
   }
 }
