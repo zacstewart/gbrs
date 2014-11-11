@@ -234,7 +234,7 @@ macro_rules! decode_op {
       0xdf => $this.rst(0x18),
       0xe0 => { let loc = $this.immediate(); let val = $this.register_a(); $this.ldh_mem(loc, val); }
       0xe1 => $this.pop_hl(),
-      0xe3 => { let loc = $this.address_c(); let val = $this.register_a(); $this.ld_mem(loc, val); }
+      0xe2 => { let loc = $this.address_c(); let val = $this.register_a(); $this.ld_mem(loc, val); }
       0xe5 => $this.push_hl(),
       0xe6 => { let val = $this.immediate(); $this.and(val); }
       0xe7 => $this.rst(0x20),
