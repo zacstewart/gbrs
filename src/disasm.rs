@@ -32,9 +32,9 @@ impl Disassembler {
   }
 
   fn take_word(&mut self) -> u16 {
-    let lower = self.take_byte() as u16;
-    let upper = (self.take_byte() << 8) as u16;
-    lower | upper
+    let immediate = self.mmu.read_word(self.pc);
+    self.pc += 2;
+    immediate
   }
 
   // Addressing modes
