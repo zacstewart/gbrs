@@ -14,7 +14,7 @@ trait AddressingMode {
 struct ImmediateAddressingMode;
 impl AddressingMode for ImmediateAddressingMode {
   fn load(&self, cpu: &mut CPU) -> Data {
-    Byte(cpu.take_byte())
+    Data::Byte(cpu.take_byte())
   }
   fn store(&self, _: &mut CPU, _: Data) {
     panic!("Can't write to ROM!")
@@ -24,7 +24,7 @@ impl AddressingMode for ImmediateAddressingMode {
 struct ImmediateSignedAddressingMode;
 impl AddressingMode for ImmediateSignedAddressingMode {
   fn load(&self, cpu: &mut CPU) -> Data {
-    SignedByte(cpu.take_byte() as i8)
+    Data::SignedByte(cpu.take_byte() as i8)
   }
   fn store(&self, _: &mut CPU, _: Data) {
     panic!("Can't write to ROM!")
@@ -34,7 +34,7 @@ impl AddressingMode for ImmediateSignedAddressingMode {
 struct ImmediateWordAddressingMode;
 impl AddressingMode for ImmediateWordAddressingMode {
   fn load(&self, cpu: &mut CPU) -> Data {
-    Word(cpu.take_byte() as u16 + cpu.take_byte() as u16)
+    Data::Word(cpu.take_byte() as u16 + cpu.take_byte() as u16)
   }
   fn store(&self, _: &mut CPU, _: Data) {
     panic!("Can't write to ROM!")
@@ -47,12 +47,12 @@ struct MemoryAddressingMode {
 
 impl AddressingMode for MemoryAddressingMode {
   fn load(&self, cpu: &mut CPU) -> Data {
-    Byte(cpu.mmu.read_byte(self.address))
+    Data::Byte(cpu.mmu.read_byte(self.address))
   }
 
   fn store(&self, cpu: &mut CPU, value: Data) {
     match value {
-      Byte(b) => cpu.mmu.write_byte(self.address, b),
+      Data::Byte(b) => cpu.mmu.write_byte(self.address, b),
       _ => {}
     }
   }
@@ -64,7 +64,7 @@ struct RegisterAdressingMode {
 
 impl AddressingMode for RegisterAdressingMode {
   fn load(&self, _: &mut CPU) -> Data {
-    Byte(self.value)
+    Data::Byte(self.value)
   }
 
   fn store(&self, cpu: &mut CPU, value: Data) {
@@ -78,14 +78,14 @@ struct SixteenBitRegisterAdressingMode {
 
 impl AddressingMode for SixteenBitRegisterAdressingMode {
   fn load(&self, _: &mut CPU) -> Data {
-    Word(self.value)
+    Data::Word(self.value)
   }
 
   fn store(&self, cpu: &mut CPU, value: Data) {
     panic!("Can't write registers yet");
   }
 }
-#[deriving(Show)]
+#[derive(Debug)]
 pub struct Clock {
   m: u16,
   t: u16
@@ -100,7 +100,7 @@ impl Clock {
   }
 }
 
-#[deriving(Show)]
+#[derive(Debug)]
 pub struct Flags {
   z: bool,
   n: bool,
@@ -119,7 +119,7 @@ impl Flags {
   }
 }
 
-#[deriving(Show)]
+#[derive(Debug)]
 pub struct CPU {
   mmu: MMU,
   clock: Clock,
@@ -169,7 +169,7 @@ impl CPU {
 
   pub fn execute(&mut self) {
     loop {
-      println!("{}", self);
+      println!("{:?}", self);
       self.step();
     }
   }
@@ -232,28 +232,28 @@ impl CPU {
   }
 
   fn address_bc(&mut self) -> MemoryAddressingMode {
-    let address = (self.b as u16 << 8) + self.c as u16;
+    let address = ((self.b as u16) << 8) + self.c as u16;
     self.address(address)
   }
 
   fn address_de(&mut self) -> MemoryAddressingMode {
-    let address = (self.d as u16 << 8) + self.e as u16;
+    let address = ((self.d as u16) << 8) + self.e as u16;
     self.address(address)
   }
 
   fn address_hl(&mut self) -> MemoryAddressingMode {
-    let address = (self.h as u16 << 8) + self.l as u16;
+    let address = ((self.h as u16) << 8) + self.l as u16;
     self.address(address)
   }
 
   fn address_hli(&mut self) -> MemoryAddressingMode {
-    let address = (self.h as u16 << 8) + self.l as u16;
+    let address = ((self.h as u16) << 8) + self.l as u16;
     self.inc_hl();
     self.address(address)
   }
 
   fn address_hld(&mut self) -> MemoryAddressingMode {
-    let address = (self.h as u16 << 8) + self.l as u16;
+    let address = ((self.h as u16) << 8) + self.l as u16;
     self.dec_hl();
     self.address(address)
   }
@@ -303,7 +303,7 @@ impl CPU {
   }
 
   fn register_hl(&self) -> SixteenBitRegisterAdressingMode {
-    let hl = (self.h << 8) as u16 + self.l as u16;
+    let hl = ((self.h as u16) << 8) + self.l as u16;
     SixteenBitRegisterAdressingMode { value: hl }
   }
 
@@ -335,26 +335,26 @@ impl CPU {
 
   // 16-bit register gets
 
-  fn get_bc(self) -> u16 {
-    let upper = self.b as u16 << 8;
+  fn get_bc(&self) -> u16 {
+    let upper = (self.b as u16) << 8;
     let lower = self.c as u16;
     return upper | lower;
   }
 
-  fn get_de(self) -> u16 {
-    let upper = self.d as u16 << 8;
+  fn get_de(&self) -> u16 {
+    let upper = (self.d as u16) << 8;
     let lower = self.e as u16;
     return upper | lower;
   }
 
-  fn get_hl(self) -> u16 {
-    let upper = self.h as u16 << 8;
+  fn get_hl(&self) -> u16 {
+    let upper = (self.h as u16) << 8;
     let lower = self.l as u16;
     return upper | lower;
   }
 
-  fn get_af(self) -> u16 {
-    let upper = self.a as u16 << 8;
+  fn get_af(&self) -> u16 {
+    let upper = (self.a as u16) << 8;
     let mut lower = 0u16;
     if self.flags.z { lower |= 0x80; }
     if self.flags.n { lower |= 0x40; }
@@ -366,63 +366,63 @@ impl CPU {
 
   fn ld_b<AM:AddressingMode>(&mut self, am: AM) {
     match am.load(self) {
-      Byte(byte) => self.b = byte,
+      Data::Byte(byte) => self.b = byte,
       _ => {}
     }
   }
 
   fn ld_c<AM:AddressingMode>(&mut self, am: AM) {
     match am.load(self) {
-      Byte(byte) => self.c = byte,
+      Data::Byte(byte) => self.c = byte,
       _ => {}
     }
   }
 
   fn ld_d<AM:AddressingMode>(&mut self, am: AM) {
     match am.load(self) {
-      Byte(byte) => self.d = byte,
+      Data::Byte(byte) => self.d = byte,
       _ => {}
     }
   }
 
   fn ld_e<AM:AddressingMode>(&mut self, am: AM) {
     match am.load(self) {
-      Byte(byte) => self.e = byte,
+      Data::Byte(byte) => self.e = byte,
       _ => {}
     }
   }
 
   fn ld_h<AM:AddressingMode>(&mut self, am: AM) {
     match am.load(self) {
-      Byte(byte) => self.h = byte,
+      Data::Byte(byte) => self.h = byte,
       _ => {}
     }
   }
 
   fn ld_l<AM:AddressingMode>(&mut self, am: AM) {
     match am.load(self) {
-      Byte(byte) => self.l = byte,
+      Data::Byte(byte) => self.l = byte,
       _ => {}
     }
   }
 
   fn ld_a<AM:AddressingMode>(&mut self, am: AM) {
     match am.load(self) {
-      Byte(byte) => self.a = byte,
+      Data::Byte(byte) => self.a = byte,
       _ => {}
     }
   }
 
   fn ld_sp<AM:AddressingMode>(&mut self, am: AM) {
     match am.load(self) {
-      Word(word) => self.sp = word,
+      Data::Word(word) => self.sp = word,
       _ => {}
     }
   }
 
   fn ld_de<AM:AddressingMode>(&mut self, am: AM) {
     match am.load(self) {
-      Word(word) => {
+      Data::Word(word) => {
         self.e = get_upper_bytes(word);
         self.d = get_lower_bytes(word);
       },
@@ -473,19 +473,19 @@ impl CPU {
   // Stores
 
   fn st_a<AM:AddressingMode>(&mut self, am: AM) {
-    let a = Byte(self.a);
+    let a = Data::Byte(self.a);
     am.store(self, a);
   }
 
   fn st_sp<AM:AddressingMode>(&mut self, am: AM) {
-    let value = Word(self.sp);
+    let value = Data::Word(self.sp);
     am.store(self, value);
   }
 
   // Arithmetic
 
   fn add_hl(&mut self, value: u16) {
-    let mut hl = (self.h << 8) as u16 + self.l as u16;
+    let mut hl = ((self.h as u16) << 8) + self.l as u16;
 
     if hl + value < hl {
       self.flags.c = true;
@@ -504,7 +504,7 @@ impl CPU {
 
   fn add_a<AM:AddressingMode>(&mut self, am: AM) {
     match am.load(self) {
-      Byte(byte) => {
+      Data::Byte(byte) => {
         let result = self.a as u16 + byte as u16;
         self.flags.z = (result & 0xff) == 0;
         self.flags.n = false;
@@ -518,7 +518,7 @@ impl CPU {
 
   fn adc_a<AM:AddressingMode>(&mut self, am: AM) {
     match am.load(self) {
-      Byte(byte) => {
+      Data::Byte(byte) => {
         let mut result = self.a as u16 + byte as u16;
         if self.flags.c {
           result += 1;
@@ -535,7 +535,7 @@ impl CPU {
 
   fn cp<AM:AddressingMode>(&mut self, am: AM) -> u8 {
     match am.load(self) {
-      Byte(byte) => {
+      Data::Byte(byte) => {
         self.flags.z = self.a == byte;
         self.flags.n = true;
         self.flags.h = (self.a & 0xf) < (byte & 0xf);
@@ -552,7 +552,7 @@ impl CPU {
 
   fn sbc_a<AM:AddressingMode>(&mut self, am: AM) {
     match am.load(self) {
-      Byte(byte) => {
+      Data::Byte(byte) => {
         let byte = byte - 1;
         self.flags.z = self.a == byte;
         self.flags.n = true;
@@ -565,7 +565,7 @@ impl CPU {
 
   fn and<AM:AddressingMode>(&mut self, am: AM) {
     match am.load(self) {
-      Byte(byte) => {
+      Data::Byte(byte) => {
         self.a &= byte;
         self.flags.z = self.a == 0;
         self.flags.n = false;
@@ -578,7 +578,7 @@ impl CPU {
 
   fn xor<AM:AddressingMode>(&mut self, am: AM) {
     match am.load(self) {
-      Byte(byte) => {
+      Data::Byte(byte) => {
         self.a ^= byte;
         self.flags.z = self.a == 0;
         self.flags.n = false;
@@ -591,7 +591,7 @@ impl CPU {
 
   fn or<AM:AddressingMode>(&mut self, am: AM) {
     match am.load(self) {
-      Byte(byte) => {
+      Data::Byte(byte) => {
         self.a |= byte;
         self.flags.z = self.a == 0;
         self.flags.n = false;
@@ -604,8 +604,8 @@ impl CPU {
 
   fn inc<AM:AddressingMode>(&mut self, am: AM) {
     match am.load(self) {
-      Byte(byte) => {
-        am.store(self, Byte(byte + 1));
+      Data::Byte(byte) => {
+        am.store(self, Data::Byte(byte + 1));
       },
       _ => panic!()
     }
@@ -613,8 +613,8 @@ impl CPU {
 
   fn dec<AM:AddressingMode>(&mut self, am: AM) {
     match am.load(self) {
-      Byte(byte) => {
-        am.store(self, Byte(byte - 1));
+      Data::Byte(byte) => {
+        am.store(self, Data::Byte(byte - 1));
       },
       _ => panic!()
     }
@@ -629,7 +629,7 @@ impl CPU {
 
   fn ld_bc<AM:AddressingMode>(&mut self, am: AM) {
     match am.load(self) {
-      Word(word) => {
+      Data::Word(word) => {
         self.b = get_upper_bytes(word);
         self.c = get_lower_bytes(word);
       },
@@ -639,17 +639,17 @@ impl CPU {
 
   fn ld_hl<AM:AddressingMode>(&mut self, am: AM) {
     match am.load(self) {
-      Word(word) => self.set_hl(word),
+      Data::Word(word) => self.set_hl(word),
       _ => panic!("Unexpected addressing mode")
     }
   }
 
   fn ldh_a<AM:AddressingMode>(&mut self, am: AM) {
     match am.load(self) {
-      Byte(b) => {
+      Data::Byte(b) => {
         let mem = self.address(b as u16 + 0xff00);
         match mem.load(self) {
-          Byte(val) => self.a = val,
+          Data::Byte(val) => self.a = val,
           _ => panic!("Unexpected addressing mode")
         }
       }
@@ -658,13 +658,13 @@ impl CPU {
   }
 
   fn ld_mem_a<AM:AddressingMode>(&mut self, am: AM) {
-    let data = Byte(self.a);
+    let data = Data::Byte(self.a);
     am.store(self, data);
   }
 
   fn ld_mem_hl<AM:AddressingMode>(&mut self, am: AM) {
-    let hl = (self.h << 8) as u16 + self.l as u16;
-    let data = Word(hl);
+    let hl = ((self.h as u16) << 8) + self.l as u16;
+    let data = Data::Word(hl);
     am.store(self, data);
   }
 
@@ -675,7 +675,7 @@ impl CPU {
 
   fn ldh_mem<AM1:AddressingMode,AM2:AddressingMode>(&mut self, loc: AM1, val: AM2) {
     match loc.load(self) {
-      Byte(b) => {
+      Data::Byte(b) => {
         let val = val.load(self);
         let loc = self.address(b as u16 + 0xff00);
         loc.store(self, val);
@@ -927,7 +927,7 @@ impl CPU {
 
   fn jr<AM:AddressingMode>(&mut self, am: AM) {
     match am.load(self) {
-      SignedByte(byte) => {
+      Data::SignedByte(byte) => {
         self.pc += byte as u16;
       },
       _ => panic!()
@@ -937,7 +937,7 @@ impl CPU {
 
   fn jr_nz<AM:AddressingMode>(&mut self, am: AM) {
     match am.load(self) {
-      SignedByte(byte) => {
+      Data::SignedByte(byte) => {
         if !self.flags.z {
           self.pc += byte as u16
         }
@@ -948,7 +948,7 @@ impl CPU {
 
   fn jr_z<AM:AddressingMode>(&mut self, am: AM) {
     match am.load(self) {
-      SignedByte(byte) => {
+      Data::SignedByte(byte) => {
         if self.flags.z {
           self.pc += byte as u16
         }
@@ -959,7 +959,7 @@ impl CPU {
 
   fn jr_nc<AM:AddressingMode>(&mut self, am: AM) {
     match am.load(self) {
-      SignedByte(byte) => {
+      Data::SignedByte(byte) => {
         if !self.flags.c {
           self.pc += byte as u16
         }
@@ -970,7 +970,7 @@ impl CPU {
 
   fn jr_c<AM:AddressingMode>(&mut self, am: AM) {
     match am.load(self) {
-      SignedByte(byte) => {
+      Data::SignedByte(byte) => {
         if self.flags.c {
           self.pc += byte as u16
         }
@@ -981,7 +981,7 @@ impl CPU {
 
   fn jp_nz<AM:AddressingMode>(&mut self, am: AM) {
     match am.load(self) {
-      Word(word) => {
+      Data::Word(word) => {
         if !self.flags.z {
           self.pc = word;
         }
@@ -992,7 +992,7 @@ impl CPU {
 
   fn jp_z<AM:AddressingMode>(&mut self, am: AM) {
     match am.load(self) {
-      Word(word) => {
+      Data::Word(word) => {
         if self.flags.z {
           self.pc = word;
         }
@@ -1003,7 +1003,7 @@ impl CPU {
 
   fn jp_nc<AM:AddressingMode>(&mut self, am: AM) {
     match am.load(self) {
-      Word(word) => {
+      Data::Word(word) => {
         if !self.flags.c {
           self.pc = word;
         }
@@ -1014,7 +1014,7 @@ impl CPU {
 
   fn jp_c<AM:AddressingMode>(&mut self, am: AM) {
     match am.load(self) {
-      Word(word) => {
+      Data::Word(word) => {
         if self.flags.c {
           self.pc = word;
         }
@@ -1025,7 +1025,7 @@ impl CPU {
 
   fn jp<AM:AddressingMode>(&mut self, am: AM) {
     match am.load(self) {
-      Word(word) => {
+      Data::Word(word) => {
         self.pc = word;
       }
       _ => panic!("Unexpected addressing mode")
@@ -1070,7 +1070,7 @@ impl CPU {
       let val = self.take_word();
       self.push_word(val);
       self.pc = match am.load(self) {
-        Word(w) => w,
+        Data::Word(w) => w,
         _ => panic!("Unexpected addressing mode!")
       }
     }
@@ -1081,7 +1081,7 @@ impl CPU {
       let val = self.take_word();
       self.push_word(val);
       self.pc = match am.load(self) {
-        Word(w) => w,
+        Data::Word(w) => w,
         _ => panic!("Unexpected addressing mode!")
       }
     }
@@ -1092,7 +1092,7 @@ impl CPU {
       let val = self.take_word();
       self.push_word(val);
       self.pc = match am.load(self) {
-        Word(w) => w,
+        Data::Word(w) => w,
         _ => panic!("Unexpected addressing mode!")
       }
     }
@@ -1103,7 +1103,7 @@ impl CPU {
       let val = self.take_word();
       self.push_word(val);
       self.pc = match am.load(self) {
-        Word(w) => w,
+        Data::Word(w) => w,
         _ => panic!("Unexpected addressing mode!")
       }
     }
@@ -1113,7 +1113,7 @@ impl CPU {
       let val = self.take_word();
       self.push_word(val);
     self.pc = match am.load(self) {
-      Word(w) => w,
+      Data::Word(w) => w,
       _ => panic!("Unexpected addressing mode!")
     }
   }
@@ -1128,7 +1128,7 @@ impl CPU {
 
   fn ld_mem_sp<AM:AddressingMode>(&mut self, am: AM) {
     match am.load(self) {
-      Word(word) => {
+      Data::Word(word) => {
         let am = self.address(word);
         self.st_sp(am)
       },
@@ -1138,17 +1138,17 @@ impl CPU {
   }
 
   fn add_hl_bc(&mut self) {
-    let bc = (self.b << 8) as u16 + self.c as u16;
+    let bc = ((self.b as u16) << 8) + self.c as u16;
     self.add_hl(bc);
   }
 
   fn add_hl_de(&mut self) {
-    let de = (self.d << 8) as u16 + self.e as u16;
+    let de = ((self.d as u16) << 8) + self.e as u16;
     self.add_hl(de);
   }
 
   fn add_hl_hl(&mut self) {
-    let hl = (self.h << 8) as u16 + self.l as u16;
+    let hl = ((self.h as u16) << 8) + self.l as u16;
     self.add_hl(hl);
   }
 

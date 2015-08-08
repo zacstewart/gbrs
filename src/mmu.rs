@@ -1,26 +1,26 @@
 use std::fmt;
 
 pub struct MMU {
-  pub program: [u8, ..64000],
-  pub working_ram: [u8, ..0x2000]
+  pub program: [u8; 64000],
+  pub working_ram: [u8; 0x2000]
 }
 
 impl MMU {
   pub fn new() -> MMU {
     MMU {
-      program: [0, ..64000],
-      working_ram: [0, ..0x2000]
+      program: [0; 64000],
+      working_ram: [0; 0x2000]
     }
   }
 
-  pub fn load_rom(&mut self, rom: &[u8]) {
+  pub fn load_rom(&mut self, rom: Box<[u8]>) {
     for (i, b) in rom.iter().enumerate() {
       self.program[i] = b.clone()
     }
   }
 
   pub fn read_byte(&self, address: u16) -> u8 {
-    let address = address as uint;
+    let address = address as usize;
     match address {
       0x0000...0x3fff => self.program[address], // ROM Bank 0
       0x4000...0x7fff => self.program[address], // ROM Bank 1
@@ -41,8 +41,8 @@ impl MMU {
   }
 
   pub fn write_byte(&mut self, address: u16, value: u8) {
-    println!("Writing {} = {}", address, value);
-    let address = address as uint;
+    //println!("Writing {} = {}", address, value);
+    let address = address as usize;
     match address {
       0x0000...0x3fff => {}, // ROM Bank 0
       0x4000...0x7fff => {}, // ROM Bank 1
@@ -65,7 +65,7 @@ impl MMU {
   }
 }
 
-impl fmt::Show for MMU {
+impl fmt::Debug for MMU {
   fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
     write!(f, "<MMU>")
   }

@@ -1,6 +1,6 @@
 use mmu::MMU;
 
-#[deriving(Show)]
+#[derive(Debug)]
 pub struct Disassembler {
   mmu: MMU,
   pc: u16
@@ -14,8 +14,8 @@ impl Disassembler {
     }
   }
 
-  pub fn disassemble(&mut self, length: uint) {
-    for _ in range(0u, length) {
+  pub fn disassemble(&mut self, length: usize) {
+    for _ in (0..length) {
       self.step();
     }
   }
