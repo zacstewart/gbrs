@@ -359,6 +359,10 @@ impl Disassembler {
     println!("ADD A,{}", am);
   }
 
+  fn add_sp(&self, am: String) {
+    println!("ADD SP,{}", am);
+  }
+
   fn adc_a(&self, am: String) {
     println!("ADC A,{}", am);
   }

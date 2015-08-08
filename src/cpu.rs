@@ -516,6 +516,20 @@ impl CPU {
     }
   }
 
+  fn add_sp<AM:AddressingMode>(&mut self, am: AM) {
+    match am.load(self) {
+      Data::Byte(byte) => {
+        let result = self.sp as u32 + byte as u32;
+        self.flags.z = false;
+        self.flags.n = false;
+        self.flags.h = ((self.sp & 0x0fff) + byte as u16) > 0x0fff;
+        self.flags.c = result > 0xffff;
+        self.sp = (result & 0xffff) as u16;
+      }
+      _ => panic!("Unexpected addressing mode")
+    }
+  }
+
   fn adc_a<AM:AddressingMode>(&mut self, am: AM) {
     match am.load(self) {
       Data::Byte(byte) => {
