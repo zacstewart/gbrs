@@ -3,7 +3,7 @@ use mmu::MMU;
 enum Data {
   Byte(u8),
   SignedByte(i8),
-  Word(u16),
+  Word(u16)
 }
 
 trait AddressingMode {
