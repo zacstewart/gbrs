@@ -40,15 +40,15 @@ impl Disassembler {
   // Addressing modes
 
   fn immediate(&mut self) -> String {
-    (format!("{}", self.take_byte())).to_string()
+    (format!("{:x}", self.take_byte())).to_string()
   }
 
   fn immediate_signed(&mut self) -> String {
-    (format!("{}", self.take_byte() as i8)).to_string()
+    (format!("{:x}", self.take_byte() as i8)).to_string()
   }
 
   fn immediate_word(&mut self) -> String {
-    (format!("{}", self.take_word())).to_string()
+    (format!("{:x}", self.take_word())).to_string()
   }
 
   fn address_bc(&self) -> String {
