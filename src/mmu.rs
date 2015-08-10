@@ -1,22 +1,20 @@
 use std::fmt;
 
 pub struct MMU {
-  pub program: [u8; 64000],
+  pub program: Box<[u8]>,
   pub working_ram: [u8; 0x2000]
 }
 
 impl MMU {
   pub fn new() -> MMU {
     MMU {
-      program: [0; 64000],
+      program: Box::new([]),
       working_ram: [0; 0x2000]
     }
   }
 
   pub fn load_rom(&mut self, rom: Box<[u8]>) {
-    for (i, b) in rom.iter().enumerate() {
-      self.program[i] = b.clone()
-    }
+    self.program = rom;
   }
 
   pub fn read_byte(&self, address: u16) -> u8 {
