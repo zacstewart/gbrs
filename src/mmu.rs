@@ -1,3 +1,5 @@
+use std::fs::File;
+use std::io::Read;
 use std::fmt;
 
 pub struct MMU {
@@ -13,8 +15,14 @@ impl MMU {
     }
   }
 
-  pub fn load_rom(&mut self, rom: Box<[u8]>) {
-    self.program = rom;
+  pub fn load_rom(&mut self, filename: &str) {
+    let mut data = vec!();
+    match File::open(filename).unwrap().read_to_end(&mut data) {
+      Ok(length) => {
+        self.program = data.into_boxed_slice();
+      },
+      _ => panic!("Failed to read ROM.")
+    }
   }
 
   pub fn read_byte(&self, address: u16) -> u8 {

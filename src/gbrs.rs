@@ -1,5 +1,3 @@
-use std::fs::File;
-use std::io::Read;
 use cpu::CPU;
 use disasm::Disassembler;
 use mmu::MMU;
@@ -266,24 +264,9 @@ mod disasm;
 mod mmu;
 
 fn main() {
-  let mut data = vec!();
-  match File::open("data/Tetris.gb").unwrap().read_to_end(&mut data) {
-    Ok(length) => {
-      let program = data.clone().into_boxed_slice();
-      let mut mmu: MMU = MMU::new();
-      mmu.load_rom(program);
-
-      let mut disasm = Disassembler::new(mmu);
-      disasm.disassemble(length);
-
-      //let program = data.clone().into_boxed_slice();
-      //let mut mmu: MMU = MMU::new();
-      //mmu.load_rom(program);
-
-      //println!("Loading ROM and beginning emulation");
-      //let mut cpu: CPU = CPU::new(mmu);
-      //cpu.execute();
-    },
-    _ => panic!("Failed to read ROM.")
-  }
+  println!("Loading ROM and beginning emulation");
+  let mut mmu: MMU = MMU::new();
+  mmu.load_rom("data/overflow_8bit_registers.gb");
+  let mut cpu: CPU = CPU::new(mmu);
+  cpu.execute();
 }
