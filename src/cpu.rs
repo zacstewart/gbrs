@@ -34,7 +34,7 @@ impl AddressingMode for ImmediateSignedAddressingMode {
 struct ImmediateWordAddressingMode;
 impl AddressingMode for ImmediateWordAddressingMode {
   fn load(&self, cpu: &mut CPU) -> Data {
-    Data::Word(cpu.take_byte() as u16 + cpu.take_byte() as u16)
+    Data::Word(cpu.take_word())
   }
   fn store(&self, _: &mut CPU, _: Data) {
     panic!("Can't write to ROM!")
