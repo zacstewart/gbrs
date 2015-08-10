@@ -184,13 +184,13 @@ impl CPU {
 
   fn take_byte(&mut self) -> u8 {
     let immediate = self.mmu.read_byte(self.pc);
-    self.pc += 1;
+    self.pc = self.pc + 1;
     return immediate;
   }
 
   fn take_word(&mut self) -> u16 {
     let immediate = self.mmu.read_word(self.pc);
-    self.pc += 2;
+    self.pc = self.pc + 2;
     return immediate;
   }
 
@@ -198,13 +198,13 @@ impl CPU {
 
   fn pop_byte(&mut self) -> u8 {
     let value = self.mmu.read_byte(self.sp);
-    self.sp += 1;
+    self.sp = self.sp + 1;
     return value;
   }
 
   fn pop_word(&mut self) -> u16 {
     let value = self.mmu.read_word(self.sp);
-    self.sp += 2;
+    self.sp = self.sp + 2;
     return value;
   }
 
@@ -535,7 +535,7 @@ impl CPU {
       Data::Byte(byte) => {
         let mut result = self.a as u16 + byte as u16;
         if self.flags.c {
-          result += 1;
+          result = result + 1;
         }
         self.flags.z = (result & 0xff) == 0;
         self.flags.n = false;
@@ -700,35 +700,35 @@ impl CPU {
 
   fn inc_bc(&mut self) {
     if self.c == 255 {
-      self.b += 1;
+      self.b = self.b + 1;
     }
-    self.c += 1;
+    self.c = self.c + 1;
     self.m = 1;
   }
 
   fn inc_de(&mut self) {
     if self.e == 255 {
-      self.d += 1;
+      self.d = self.d + 1;
     }
-    self.e += 1;
+    self.e = self.e + 1;
     self.m = 1;
   }
 
   fn inc_hl(&mut self) {
     if self.l == 255 {
-      self.h += 1;
+      self.h = self.h + 1;
     }
-    self.l += 1;
+    self.l = self.l + 1;
     self.m = 1;
   }
 
   fn inc_sp(&mut self) {
-    self.sp += 1;
+    self.sp = self.sp + 1;
     self.m = 1;
   }
 
   fn inc_b(&mut self) {
-    self.b += 1;
+    self.b = self.b + 1;
     if self.b == 0 {
       self.flags.z = true;
     } else {
@@ -737,7 +737,7 @@ impl CPU {
   }
 
   fn inc_c(&mut self) {
-    self.c += 1;
+    self.c = self.c + 1;
     if self.c == 0 {
       self.flags.z = true;
     } else {
@@ -746,7 +746,7 @@ impl CPU {
   }
 
   fn inc_d(&mut self) {
-    self.d += 1;
+    self.d = self.d + 1;
     if self.d == 0 {
       self.flags.z = true;
     } else {
@@ -755,7 +755,7 @@ impl CPU {
   }
 
   fn inc_e(&mut self) {
-    self.e += 1;
+    self.e = self.e + 1;
     if self.e == 0 {
       self.flags.z = true;
     } else {
@@ -764,7 +764,7 @@ impl CPU {
   }
 
   fn inc_h(&mut self) {
-    self.h += 1;
+    self.h = self.h + 1;
     if self.h == 0 {
       self.flags.z = true;
     } else {
@@ -773,7 +773,7 @@ impl CPU {
   }
 
   fn inc_l(&mut self) {
-    self.l += 1;
+    self.l = self.l + 1;
     if self.l == 0 {
       self.flags.z = true;
     } else {
@@ -782,7 +782,7 @@ impl CPU {
   }
 
   fn inc_a(&mut self) {
-    self.a += 1;
+    self.a = self.a + 1;
     if self.a == 0 {
       self.flags.z = true;
     } else {
@@ -1176,7 +1176,7 @@ impl CPU {
   }
 
   fn stop(&mut self) {
-    self.pc += 1;
+    self.pc = self.pc + 1;
   }
 
   // Miscellaneous
@@ -1184,12 +1184,12 @@ impl CPU {
   fn daa(&mut self) {
     self.flags.c = false;
     if (self.a & 0x0f) > 9 {
-      self.a += 0x06;
+      self.a = self.a + 0x06;
     }
 
     if ((self.a & 0xf0) >> 4) > 9 {
       self.flags.c = true;
-      self.a += 0x60;
+      self.a = self.a + 0x60;
     }
 
     self.flags.h = false;
