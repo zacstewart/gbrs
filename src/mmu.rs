@@ -52,7 +52,7 @@ impl MMU {
     println!("Writing {:x} = {:x}", address, value);
     let address = address as usize;
     match address {
-      0x0000...0x3fff => {}, // ROM Bank 0
+      0x0000...0x3fff => { panic!("Cannot write to ROM") }, // ROM Bank 0
       0x4000...0x7fff => {}, // ROM Bank 1
       0x8000...0x9fff => {}, // GPU vram
       0xa000...0xbfff => {}, // External RAM
