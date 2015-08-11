@@ -214,7 +214,7 @@ impl CPU {
 
   fn push_word(&mut self, value: u16) {
     self.mmu.write_word(self.sp, value);
-    self.sp -= 2;
+    self.sp = self.sp - 2;
   }
 
   // Addressing
