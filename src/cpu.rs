@@ -823,7 +823,7 @@ impl CPU {
   }
 
   fn dec_b(&mut self) {
-    self.b -= 1;
+    self.b = (W(self.b) - W(1)).0;
     if self.b == 0 {
       self.flags.z = true;
     } else {
@@ -832,7 +832,7 @@ impl CPU {
   }
 
   fn dec_c(&mut self) {
-    self.c -= 1;
+    self.c = (W(self.c) - W(1)).0;
     if self.c == 0 {
       self.flags.z = true;
     } else {
@@ -841,7 +841,7 @@ impl CPU {
   }
 
   fn dec_d(&mut self) {
-    self.d -= 1;
+    self.d = (W(self.d) - W(1)).0;
     if self.d  == 0 {
       self.flags.z = true;
     } else {
@@ -850,7 +850,7 @@ impl CPU {
   }
 
   fn dec_e(&mut self) {
-    self.e -= 1;
+    self.e = (W(self.e) - W(1)).0;
     if self.e  == 0 {
       self.flags.z = true;
     } else {
@@ -859,7 +859,7 @@ impl CPU {
   }
 
   fn dec_h(&mut self) {
-    self.h -= 1;
+    self.h = (W(self.h) - W(1)).0;
     if self.h  == 0 {
       self.flags.z = true;
     } else {
@@ -868,7 +868,7 @@ impl CPU {
   }
 
   fn dec_l(&mut self) {
-    self.l -= 1;
+    self.l = (W(self.l) - W(1)).0;
     if self.l  == 0 {
       self.flags.z = true;
     } else {
@@ -877,7 +877,7 @@ impl CPU {
   }
 
   fn dec_a(&mut self) {
-    self.a -= 1;
+    self.a = (W(self.a) - W(1)).0;
     if self.a  == 0 {
       self.flags.z = true;
     } else {
