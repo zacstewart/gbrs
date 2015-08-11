@@ -2,6 +2,8 @@ use cpu::CPU;
 use disasm::Disassembler;
 use mmu::MMU;
 
+mod tests;
+
 macro_rules! decode_op {
   ($op:expr, $this:ident) => {
     match $op {

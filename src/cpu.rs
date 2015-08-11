@@ -124,24 +124,26 @@ pub struct CPU {
   mmu: MMU,
   clock: Clock,
 
-  pc: u16, // Program Counter
-  sp: u16, // Stack pointer
+  pub pc: u16, // Program Counter
+  pub sp: u16, // Stack pointer
 
   // Registers
-  a: u8,
-  b: u8,
-  c: u8,
-  d: u8,
-  e: u8,
-  h: u8,
-  l: u8,
+  pub a: u8,
+  pub b: u8,
+  pub c: u8,
+  pub d: u8,
+  pub e: u8,
+  pub h: u8,
+  pub l: u8,
 
   // Clock
   m: u16,
   t: u16,
 
   flags: Flags,
-  interrups: bool
+  interrups: bool,
+
+  halted: bool
 }
 
 impl CPU {
@@ -163,14 +165,15 @@ impl CPU {
       m: 0,
       t: 0,
       flags: flags,
-      interrups: true
+      interrups: true,
+      halted: false
     }
   }
 
   pub fn execute(&mut self) {
-    loop {
-      println!("{:?}", self);
+    while !self.halted {
       self.step();
+      println!("{:?}", self);
     }
   }
 
@@ -1172,7 +1175,7 @@ impl CPU {
   }
 
   fn halt(&mut self) {
-    //panic!("HALT");
+    self.halted = true;
   }
 
   fn stop(&mut self) {

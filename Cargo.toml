@@ -7,5 +7,5 @@ authors = ["Zac Stewart <zgstewart@gmail.com>"]
 [[bin]]
 
 name = "gbrs"
-test = false
+test = true
 doc = false
