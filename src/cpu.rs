@@ -623,7 +623,8 @@ impl CPU {
   fn inc<AM:AddressingMode>(&mut self, am: AM) {
     match am.load(self) {
       Data::Byte(byte) => {
-        am.store(self, Data::Byte(byte + 1));
+        let byte = (W(byte) + W(1)).0;
+        am.store(self, Data::Byte(byte));
       },
       _ => panic!()
     }
