@@ -246,7 +246,7 @@ impl CPU {
   }
 
   fn address_hl(&mut self) -> MemoryAddressingMode {
-    let address = ((self.h as u16) << 8) + self.l as u16;
+    let address = ((self.h as u16) << 8) | self.l as u16;
     self.address(address)
   }
 
