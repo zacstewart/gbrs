@@ -796,30 +796,30 @@ impl CPU {
 
   fn dec_bc(&mut self) {
     if self.c == 0 {
-      self.b -= 1
+      self.b = self.b - 1
     }
-    self.c -= 1;
+    self.c = self.c - 1;
     self.m = 8;
   }
 
   fn dec_de(&mut self) {
     if self.e == 0 {
-      self.d -= 1
+      self.d = self.d - 1
     }
-    self.e -= 1;
+    self.e = self.e - 1;
     self.m = 8;
   }
 
   fn dec_hl(&mut self) {
     if self.l == 0 {
-      self.h -= 1
+      self.h = self.h - 1
     }
-    self.l -= 1;
+    self.l = self.l - 1;
     self.m = 8;
   }
 
   fn dec_sp(&mut self) {
-    self.sp -= 1;
+    self.sp = (W(self.sp) - W(1)).0;
   }
 
   fn dec_b(&mut self) {
