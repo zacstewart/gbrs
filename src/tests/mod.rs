@@ -17,8 +17,9 @@ fn ld_bc_immediate_word() {
 
 #[test]
 fn registers_8bit_wrap_around_upon_overflow() {
+    let cart = Cartridge::load("data/overflow_8bit_registers.gb");
     let mut mmu: MMU = MMU::new();
-    mmu.load_rom("data/overflow_8bit_registers.gb");
+    mmu.load_cartridge(cart);
     let mut cpu: CPU = CPU::new(mmu);
     cpu.execute();
     assert_eq!(cpu.b, 0);
@@ -30,8 +31,9 @@ fn registers_8bit_wrap_around_upon_overflow() {
 
 #[test]
 fn registers_8bit_wrap_around_upon_underflow() {
+    let cart = Cartridge::load("data/underflow_8bit_registers.gb");
     let mut mmu: MMU = MMU::new();
-    mmu.load_rom("data/underflow_8bit_registers.gb");
+    mmu.load_cartridge(cart);
     let mut cpu: CPU = CPU::new(mmu);
     cpu.execute();
     assert_eq!(cpu.b, 255);
