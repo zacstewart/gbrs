@@ -702,6 +702,8 @@ impl CPU {
     }
   }
 
+  // 16-bit INCs
+
   fn inc_bc(&mut self) {
     if self.c == 255 {
       self.b = self.b + 1;
@@ -730,6 +732,8 @@ impl CPU {
     self.sp = self.sp + 1;
     self.m = 1;
   }
+
+  // 8-bit INCs
 
   fn inc_b(&mut self) {
     self.b = (W(self.b) + W(1)).0;
@@ -794,6 +798,8 @@ impl CPU {
     }
   }
 
+  // 16-bit DECs
+
   fn dec_bc(&mut self) {
     if self.c == 0 {
       self.b = self.b - 1
@@ -821,6 +827,8 @@ impl CPU {
   fn dec_sp(&mut self) {
     self.sp = (W(self.sp) - W(1)).0;
   }
+
+  // 8-bit DECs
 
   fn dec_b(&mut self) {
     self.b = (W(self.b) - W(1)).0;
