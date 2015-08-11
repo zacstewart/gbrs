@@ -1,5 +1,6 @@
 use mmu::MMU;
 use std::num::Wrapping as W;
+use memory_map::{ReadByte, WriteByte};
 
 enum Data {
   Byte(u8),

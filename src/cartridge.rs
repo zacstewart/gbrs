@@ -1,5 +1,6 @@
 use std::fs::File;
 use std::io::Read;
+use memory_map::ReadByte;
 
 pub struct Cartridge {
     rom: Box<[u8]>
@@ -21,8 +22,10 @@ impl Cartridge {
           _ => panic!("Failed to read ROM.")
         }
     }
+}
 
-    pub fn read(&self, address: usize) -> u8 {
-        self.rom[address]
+impl ReadByte for Cartridge {
+    fn read_byte(&self, address: u16) -> u8 {
+        self.rom[address as usize]
     }
 }

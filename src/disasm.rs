@@ -1,4 +1,5 @@
 use mmu::MMU;
+use memory_map::ReadByte;
 
 #[derive(Debug)]
 pub struct Disassembler {
