@@ -144,7 +144,7 @@ pub struct CPU {
   flags: Flags,
   interrups: bool,
 
-  halted: bool
+  stopped: bool
 }
 
 impl CPU {
@@ -167,12 +167,12 @@ impl CPU {
       t: 0,
       flags: flags,
       interrups: true,
-      halted: false
+      stopped: false
     }
   }
 
   pub fn execute(&mut self) {
-    while !self.halted {
+    while !self.stopped {
       self.step();
       println!("{:?}", self);
     }
@@ -1185,12 +1185,13 @@ impl CPU {
     self.add_hl(sp);
   }
 
-  fn halt(&mut self) {
-    self.halted = true;
+  fn stop(&mut self) {
+    self.stopped = true;
+    self.pc = self.pc + 1;
   }
 
-  fn stop(&mut self) {
-    self.pc = self.pc + 1;
+  fn halt(&mut self) {
+      // TODO: HALT
   }
 
   // Miscellaneous

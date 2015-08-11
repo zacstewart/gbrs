@@ -58,7 +58,7 @@ fn registers_16bit_wrap_around_upon_overflow() {
         0x31, 0xff, 0xff,   // LD SP, 65535
         0x33,               // INC SP
 
-        0x76                // HALT
+        0x10                // STOP
     );
     let cart = Cartridge::new(rom.into_boxed_slice());
     let mut mmu: MMU = MMU::new();
