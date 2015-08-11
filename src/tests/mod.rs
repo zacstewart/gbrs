@@ -2,11 +2,13 @@
 
 use cpu::CPU;
 use mmu::MMU;
+use cartridge::Cartridge;
 
 #[test]
 fn ld_bc_immediate_word() {
+    let cart = Cartridge::load("data/ld_bc_d16.gb");
     let mut mmu: MMU = MMU::new();
-    mmu.load_rom("data/ld_bc_d16.gb");
+    mmu.load_cartridge(cart);
     let mut cpu: CPU = CPU::new(mmu);
     cpu.execute();
     assert_eq!(cpu.b, 0xca);

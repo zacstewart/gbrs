@@ -1,35 +1,28 @@
-use std::fs::File;
-use std::io::Read;
+use cartridge::Cartridge;
 use std::fmt;
 
 pub struct MMU {
-  pub program: Box<[u8]>,
+  pub cartridge: Cartridge,
   pub working_ram: [u8; 0x2000]
 }
 
 impl MMU {
   pub fn new() -> MMU {
     MMU {
-      program: Box::new([]),
+      cartridge: Cartridge::new(Box::new([])),
       working_ram: [0; 0x2000]
     }
   }
 
-  pub fn load_rom(&mut self, filename: &str) {
-    let mut data = vec!();
-    match File::open(filename).unwrap().read_to_end(&mut data) {
-      Ok(length) => {
-        self.program = data.into_boxed_slice();
-      },
-      _ => panic!("Failed to read ROM.")
-    }
+  pub fn load_cartridge(&mut self, cartridge: Cartridge) {
+      self.cartridge = cartridge;
   }
 
   pub fn read_byte(&self, address: u16) -> u8 {
     let address = address as usize;
     match address {
-      0x0000...0x3fff => self.program[address], // ROM Bank 0
-      0x4000...0x7fff => self.program[address], // ROM Bank 1
+      0x0000...0x3fff => self.cartridge.read(address), // ROM Bank 0
+      0x4000...0x7fff => self.cartridge.read(address), // ROM Bank 1
       0x8000...0x9fff => 0, // GPU vram
       0xa000...0xbfff => 0, // External RAM
       0xc000...0xdfff => self.working_ram[address & 0x1fff],

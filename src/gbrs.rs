@@ -3,6 +3,8 @@ use disasm::Disassembler;
 use mmu::MMU;
 
 mod tests;
+use cartridge::Cartridge;
+use std::env;
 
 macro_rules! decode_op {
   ($op:expr, $this:ident) => {
@@ -264,11 +266,15 @@ macro_rules! decode_prefixed_op {
 mod cpu;
 mod disasm;
 mod mmu;
+mod cartridge;
 
 fn main() {
+  let args: Vec<_> = env::args().collect();
+
   println!("Loading ROM and beginning emulation");
+  let cart = Cartridge::load(&args[1]);
   let mut mmu: MMU = MMU::new();
-  mmu.load_rom("data/overflow_8bit_registers.gb");
+  mmu.load_cartridge(cart);
   let mut cpu: CPU = CPU::new(mmu);
   cpu.execute();
 }
