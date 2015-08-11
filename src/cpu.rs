@@ -188,7 +188,7 @@ impl CPU {
 
   fn take_byte(&mut self) -> u8 {
     let immediate = self.mmu.read_byte(self.pc);
-    self.pc = self.pc + 1;
+    self.pc = (W(self.pc) + W(1)).0;
     return immediate;
   }
 
