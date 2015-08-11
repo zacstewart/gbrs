@@ -49,7 +49,7 @@ impl MMU {
   }
 
   pub fn write_byte(&mut self, address: u16, value: u8) {
-    //println!("Writing {} = {}", address, value);
+    println!("Writing {:x} = {:x}", address, value);
     let address = address as usize;
     match address {
       0x0000...0x3fff => {}, // ROM Bank 0
