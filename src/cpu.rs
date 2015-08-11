@@ -708,30 +708,30 @@ impl CPU {
 
   fn inc_bc(&mut self) {
     if self.c == 255 {
-      self.b = self.b + 1;
+      self.b = (W(self.b) + W(1)).0;
     }
-    self.c = self.c + 1;
+    self.c = (W(self.c) + W(1)).0;
     self.m = 1;
   }
 
   fn inc_de(&mut self) {
     if self.e == 255 {
-      self.d = self.d + 1;
+      self.d = (W(self.d) + W(1)).0;
     }
-    self.e = self.e + 1;
+    self.e = (W(self.e) + W(1)).0;
     self.m = 1;
   }
 
   fn inc_hl(&mut self) {
     if self.l == 255 {
-      self.h = self.h + 1;
+      self.h = (W(self.h) + W(1)).0;
     }
-    self.l = self.l + 1;
+    self.l = (W(self.l) + W(1)).0;
     self.m = 1;
   }
 
   fn inc_sp(&mut self) {
-    self.sp = self.sp + 1;
+    self.sp = (W(self.sp) + W(1)).0;
     self.m = 1;
   }
 

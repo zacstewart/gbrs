@@ -40,3 +40,34 @@ fn registers_8bit_wrap_around_upon_underflow() {
     assert_eq!(cpu.e, 255);
     assert_eq!(cpu.a, 1);
 }
+
+#[test]
+fn registers_16bit_wrap_around_upon_overflow() {
+    let rom: Vec<u8> = vec!(
+        0x01, 0xff, 0xff,   // LD BC, 65535
+        0x03,               // INC BC
+
+        0x11, 0xff, 0xff,   // LD DE, 65535
+        0x13,               // INC DE
+
+        0x21, 0xff, 0xff,   // LD HL, 65535
+        0x23,               // INC HL
+
+        0x31, 0xff, 0xff,   // LD SP, 65535
+        0x33,               // INC SP
+
+        0x76                // HALT
+    );
+    let cart = Cartridge::new(rom.into_boxed_slice());
+    let mut mmu: MMU = MMU::new();
+    mmu.load_cartridge(cart);
+    let mut cpu: CPU = CPU::new(mmu);
+    cpu.execute();
+    assert_eq!(cpu.b, 0);
+    assert_eq!(cpu.c, 0);
+    assert_eq!(cpu.d, 0);
+    assert_eq!(cpu.e, 0);
+    assert_eq!(cpu.h, 0);
+    assert_eq!(cpu.l, 0);
+    assert_eq!(cpu.sp, 0);
+}
