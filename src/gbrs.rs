@@ -267,6 +267,7 @@ mod cpu;
 mod disasm;
 mod mmu;
 mod cartridge;
+mod gpu;
 mod memory_map;
 
 fn main() {
