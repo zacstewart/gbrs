@@ -1,4 +1,5 @@
 use mmu::MMU;
+use std::num::Wrapping as W;
 
 enum Data {
   Byte(u8),
@@ -180,7 +181,7 @@ impl CPU {
   fn step(&mut self) {
     let instruction = self.take_byte();
     decode_op!(instruction, self);
-    self.clock.m += self.m;
+    self.clock.m = (W(self.clock.m) + W(self.m)).0;
   }
 
   // Fetch from program
