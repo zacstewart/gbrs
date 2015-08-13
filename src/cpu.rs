@@ -157,7 +157,7 @@ pub struct CPU {
   flags: Flags,
   interrups: bool,
 
-  stopped: bool
+  pub stopped: bool
 }
 
 impl CPU {
@@ -184,14 +184,7 @@ impl CPU {
     }
   }
 
-  pub fn execute(&mut self) {
-    while !self.stopped {
-      self.step();
-      println!("{:?}", self);
-    }
-  }
-
-  fn step(&mut self) {
+  pub fn step(&mut self) {
     let instruction = self.take_byte();
     decode_op!(instruction, self);
     self.clock.m = (W(self.clock.m) + W(self.m)).0;

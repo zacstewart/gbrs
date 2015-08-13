@@ -277,9 +277,23 @@ fn main() {
   let args: Vec<_> = env::args().collect();
 
   println!("Loading ROM and beginning emulation");
-  let cart = Cartridge::load(&args[1]);
-  let mut mmu: MMU = MMU::new();
+  let cart = Cartridge::load(&args[2]);
+  let size = cart.size();
+  let mut gpu: GPU = GPU::new();
+  let mut mmu: MMU = MMU::new(gpu);
   mmu.load_cartridge(cart);
-  let mut cpu: CPU = CPU::new(mmu);
-  cpu.execute();
+
+  match args[1].as_ref() {
+      "run" => {
+          let mut cpu: CPU = CPU::new(mmu);
+          while !cpu.stopped {
+              cpu.step();
+          }
+      }
+      "disasm" => {
+          let mut disasm = Disassembler::new(mmu);
+          disasm.disassemble(size);
+      }
+      _ => {}
+  }
 }

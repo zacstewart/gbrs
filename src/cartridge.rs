@@ -16,11 +16,15 @@ impl Cartridge {
     pub fn load(filename: &str) -> Cartridge {
         let mut data = vec!();
         match File::open(filename).unwrap().read_to_end(&mut data) {
-          Ok(_) => {
+          Ok(length) => {
               Cartridge::new(data.into_boxed_slice())
           },
           _ => panic!("Failed to read ROM.")
         }
+    }
+
+    pub fn size(&self) -> usize {
+        self.rom.len()
     }
 }
 
