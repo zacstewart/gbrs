@@ -255,14 +255,14 @@ macro_rules! decode_op {
       0xfb => { $this.enable_interrupts(); }
       0xfe => { let val = $this.immediate(); $this.cp(val); }
       0xff => $this.rst(0x38),
-      _ => {}//println!("{}", $this)
+      _ => { println!("Unknown OP: {:2x}", $op) }
     }
   }
 }
 macro_rules! decode_prefixed_op {
   ($op:expr, $this:ident) => {
     match $op {
-      _ => println!("Prefixed op: {}", $op)
+      _ => println!("Prefixed op: {:2x}", $op)
     }
   }
 }
