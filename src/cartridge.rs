@@ -30,6 +30,7 @@ impl Cartridge {
 
 impl ReadByte for Cartridge {
     fn read_byte(&self, address: u16) -> u8 {
+        //println!("Reading cart: {:2x}", address);
         self.rom[address as usize]
     }
 }
