@@ -72,6 +72,7 @@ impl WriteByte for MMU {
       0xa000...0xbfff => { self.cartridge.write_byte(address, value); }                 // External RAM [Cartridge]
       0xff80...0xfffe => { self.hram[(address & 0x7f) as usize] = value }               // Zero-page RAM (High RAM, HRAM)
       0xffff => { println!("Write to interrupt enable register: {:2x} = {:2x}", address, value) } // Interrupt enable register
+      _ => { panic!("Wrote memory out of bounds: {:2x}", address) }
     }
   }
 
