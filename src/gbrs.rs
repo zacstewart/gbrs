@@ -1,3 +1,5 @@
+#![feature(convert)]
+use std::convert::AsRef;
 use cpu::CPU;
 use disasm::Disassembler;
 use mmu::MMU;
