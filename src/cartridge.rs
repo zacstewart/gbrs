@@ -1,6 +1,5 @@
 use std::fs::File;
 use std::io::Read;
-use memory_map::ReadByte;
 use memory_map::{ReadByte, WriteByte};
 
 pub struct Cartridge {
