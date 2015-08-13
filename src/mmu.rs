@@ -41,7 +41,6 @@ impl MMU {
 impl ReadByte for MMU {
   fn read_byte(&self, address: u16) -> u8 {
     match address {
-      0xfea0...0xfeff => 0,
       0xff00...0xff3f => { println!("Reading I/O: {}", address); 0} // Memory-mapped I/O
       0xff40...0xff7f => { self.gpu.read_byte(address) } // GPU
       0x0000...0x7fff => { self.cartridge.read_byte(address) }              // ROM bank 0 & switchable [Cartridge]
@@ -50,6 +49,7 @@ impl ReadByte for MMU {
       0xc000...0xdfff => { self.working_ram[(address & 0x1fff) as usize] }  // Working ram (WRAM)
       0xe000...0xfdff => { self.working_ram[(address & 0x1fff) as usize] }  // Shadow RAM (ECHO)
       0xfe00...0xfe9f => { self.gpu.read_byte(address) }                    // Sprite attribute table (OAM) [GPU]
+      0xfea0...0xfeff => 0,                                                 // Unusable
       0xff80...0xfffe => { self.hram[(address & 0x7f) as usize] }           // Zero-page RAM (High RAM, HRAM)
       0xffff => { 0 }                                                       // Interrupt enable register
       _ => { panic!("Read memory out of bounds: {}", address) }
@@ -70,6 +70,7 @@ impl WriteByte for MMU {
       0xc000...0xdfff => { self.working_ram[(address & 0x1fff) as usize] = value }      // Working RAM (WRAM)
       0xe000...0xfdff => { self.working_ram[(address & 0x1fff) as usize] = value }      // Shadow RAM (ECHO)
       0xfe00...0xfe9f => { self.gpu.write_byte(address, value) }                        // Sprite info
+      0xfea0...0xfeff => { }                                                            // Unusable
       0xff80...0xfffe => { self.hram[(address & 0x7f) as usize] = value }               // Zero-page RAM (High RAM, HRAM)
       0xffff => { println!("Write to interrupt enable register: {:2x} = {:2x}", address, value) } // Interrupt enable register
       _ => { panic!("Wrote memory out of bounds: {:2x}", address) }
