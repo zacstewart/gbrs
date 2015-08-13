@@ -241,6 +241,7 @@ macro_rules! decode_op {
       0xe7 => $this.rst(0x20),
       0xe8 => { let val = $this.immediate_signed(); $this.add_sp(val); }
       0xe9 => { let loc = $this.register_hl(); $this.jp(loc); }
+      0xea => { let val = $this.immediate_word_address(); $this.ld_mem_a(val); }
       0xee => { let val = $this.immediate(); $this.xor(val); }
       0xef => $this.rst(0x28),
       0xf0 => { let val = $this.immediate(); $this.ldh_a(val); }

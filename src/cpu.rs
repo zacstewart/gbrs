@@ -43,6 +43,18 @@ impl AddressingMode for ImmediateWordAddressingMode {
   }
 }
 
+struct ImmediateWordAddressAddressingMode;
+impl AddressingMode for ImmediateWordAddressAddressingMode {
+  fn load(&self, cpu: &mut CPU) -> Data {
+    let am = MemoryAddressingMode { address: cpu.take_word() };
+    am.load(cpu)
+  }
+  fn store(&self, cpu: &mut CPU, value: Data) {
+    let am = MemoryAddressingMode { address: cpu.take_word() };
+    am.store(cpu, value);
+  }
+}
+
 struct MemoryAddressingMode {
   address: u16
 }
@@ -230,6 +242,10 @@ impl CPU {
 
   fn immediate_word(&mut self) -> ImmediateWordAddressingMode {
     ImmediateWordAddressingMode
+  }
+
+  fn immediate_word_address(&mut self) -> ImmediateWordAddressAddressingMode {
+    ImmediateWordAddressAddressingMode
   }
 
   fn address(&mut self, address: u16) -> MemoryAddressingMode {

@@ -52,6 +52,10 @@ impl Disassembler {
     (format!("{:x}", self.take_word())).to_string()
   }
 
+  fn immediate_word_address(&mut self) -> String {
+    (format!("({:x})", self.take_word())).to_string()
+  }
+
   fn address_bc(&self) -> String {
     "(BC)".to_string()
   }
