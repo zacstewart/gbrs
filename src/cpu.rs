@@ -501,7 +501,7 @@ impl CPU {
   fn add_hl(&mut self, value: u16) {
     let mut hl = ((self.h as u16) << 8) + self.l as u16;
 
-    if hl + value < hl {
+    if (W(hl) + W(value)).0 < hl {
       self.flags.c = true;
     } else {
       self.flags.c = false;
@@ -509,7 +509,7 @@ impl CPU {
 
     self.flags.n = false;
 
-    hl += value;
+    hl = (W(hl) + W(value)).0;
 
     self.h = (hl >> 8) as u8;
     self.l = hl as u8;
@@ -519,10 +519,11 @@ impl CPU {
   fn add_a<AM:AddressingMode>(&mut self, am: AM) {
     match am.load(self) {
       Data::Byte(byte) => {
-        let result = self.a as u16 + byte as u16;
+        let result = (W(self.a as u16) + W(byte as u16)).0;
+
         self.flags.z = (result & 0xff) == 0;
         self.flags.n = false;
-        self.flags.h = ((self.a & 0x0f) + (byte & 0x0f)) & 0x10 == 0x10;
+        self.flags.h = ((W(self.a & 0x0f) + W(byte & 0x0f)).0 & 0x10) == 0x10;
         self.flags.c = result > 0xff;
         self.a = (result & 0xff) as u8
       },
@@ -533,10 +534,10 @@ impl CPU {
   fn add_sp<AM:AddressingMode>(&mut self, am: AM) {
     match am.load(self) {
       Data::Byte(byte) => {
-        let result = self.sp as u32 + byte as u32;
+        let result = (W(self.sp as u32) + W(byte as u32)).0;
         self.flags.z = false;
         self.flags.n = false;
-        self.flags.h = ((self.sp & 0x0fff) + byte as u16) > 0x0fff;
+        self.flags.h = (W(self.sp & 0x0fff) + W(byte as u16)).0 > 0x0fff;
         self.flags.c = result > 0xffff;
         self.sp = (result & 0xffff) as u16;
       }
@@ -568,7 +569,7 @@ impl CPU {
         self.flags.n = true;
         self.flags.h = (self.a & 0xf) < (byte & 0xf);
         self.flags.c = self.a < byte;
-        return self.a - byte;
+        return (W(self.a) - W(byte)).0;
       }
       _ => panic!("Unexpected addressing mode")
     }
@@ -977,7 +978,7 @@ impl CPU {
     match am.load(self) {
       Data::SignedByte(byte) => {
         if !self.flags.z {
-          self.pc += byte as u16
+          self.pc = (W(self.pc) + W(byte as u16)).0;
         }
       },
       _ => panic!("Unexpected addressing mode")
