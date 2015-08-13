@@ -61,7 +61,6 @@ impl WriteByte for MMU {
   fn write_byte(&mut self, address: u16, value: u8) {
     //println!("Writing {:x} = {:x}", address, value);
     match address {
-      _ => { panic!("Wrote memory out of bounds: {}", address) }
       0x0000...0x7fff => { self.cartridge.write_byte(address, value); },                // ROM Bank 0 & switchable [Cartridge]
       0x8000...0x9fff => { self.gpu.write_byte(address, value); }                       // VRAM [GPU]
       0xa000...0xbfff => { self.cartridge.write_byte(address, value); }                 // External RAM [Cartridge]
