@@ -188,6 +188,7 @@ impl CPU {
     let instruction = self.take_byte();
     decode_op!(instruction, self);
     self.clock.m = (W(self.clock.m) + W(self.m)).0;
+    self.mmu.step(self.clock.m);
   }
 
   // Fetch from program

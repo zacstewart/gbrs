@@ -24,6 +24,9 @@ impl MMU {
       self.cartridge = cartridge;
   }
 
+  pub fn step(&mut self, clock: u16) {
+  }
+
   pub fn read_word(&self, address: u16) -> u16 {
     let ls = self.read_byte(address) as u16;
     let ms = (self.read_byte(address + 1) as u16) << 8;
