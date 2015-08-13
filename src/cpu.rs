@@ -512,7 +512,7 @@ impl CPU {
     hl = (W(hl) + W(value)).0;
 
     self.h = (hl >> 8) as u8;
-    self.l = hl as u8;
+    self.l = (hl & 0xff) as u8;
     self.m = 3;
   }
 
