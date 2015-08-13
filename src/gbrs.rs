@@ -250,6 +250,7 @@ macro_rules! decode_op {
       0xf5 => $this.push_af(),
       0xf6 => { let val = $this.immediate(); $this.or(val); }
       0xf7 => $this.rst(0x30),
+      0xfa => { let am = $this.immediate_word_address(); $this.ld_a(am); }
       0xfe => { let val = $this.immediate(); $this.cp(val); }
       0xff => $this.rst(0x38),
       _ => {}//println!("{}", $this)
