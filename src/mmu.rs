@@ -6,6 +6,7 @@ use memory_map::{ReadByte, WriteByte};
 pub struct MMU {
   pub cartridge: Cartridge,
   pub working_ram: [u8; 0x2000],
+  pub hram: [u8; 127],
   pub gpu: GPU
 }
 
@@ -14,6 +15,7 @@ impl MMU {
     MMU {
       cartridge: Cartridge::new(Box::new([])),
       working_ram: [0; 0x2000],
+      hram: [0; 127],
       gpu: GPU::new()
     }
   }
@@ -49,7 +51,8 @@ impl ReadByte for MMU {
       0xfea0...0xfeff => 0,
       0xff00...0xff3f => { println!("Reading I/O: {}", address); 0} // Memory-mapped I/O
       0xff40...0xff7f => { self.gpu.read_byte(address) } // GPU
-      0xff80...0xffff => 0, // Zero-page RAM
+      0xff80...0xfffe => { self.hram[(address & 0x7f) as usize] }           // Zero-page RAM (High RAM, HRAM)
+      0xffff => { 0 }                                                       // Interrupt enable register
       _ => { panic!("Read memory out of bounds: {}", address) }
     }
   }
@@ -68,8 +71,9 @@ impl WriteByte for MMU {
       0xfe00...0xfe9f => {}, // Sprite info
       0xff00...0xff3f => { println!("Writing I/O: {} = {}", address, value) } // Memory-mapped I/O
       0xff40...0xff7f => { self.gpu.write_byte(address, value) } // GPU
-      0xff80...0xffff => {}, // Zero-page RAM
       _ => { panic!("Wrote memory out of bounds: {}", address) }
+      0xff80...0xfffe => { self.hram[(address & 0x7f) as usize] = value }               // Zero-page RAM (High RAM, HRAM)
+      0xffff => { println!("Write to interrupt enable register: {:2x} = {:2x}", address, value) } // Interrupt enable register
     }
   }
 
