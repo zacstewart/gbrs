@@ -1211,6 +1211,14 @@ impl CPU {
       // TODO: HALT
   }
 
+  fn disable_interrupts(&mut self) {
+      self.interrups = false;
+  }
+
+  fn enable_interrupts(&mut self) {
+      self.interrups = true;
+  }
+
   // Miscellaneous
 
   fn daa(&mut self) {

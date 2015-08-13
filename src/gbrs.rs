@@ -247,10 +247,12 @@ macro_rules! decode_op {
       0xf0 => { let val = $this.immediate(); $this.ldh_a(val); }
       0xf1 => $this.pop_af(),
       0xf2 => { let val = $this.address_c(); $this.ld_a(val) }
+      0xf3 => { $this.disable_interrupts() }
       0xf5 => $this.push_af(),
       0xf6 => { let val = $this.immediate(); $this.or(val); }
       0xf7 => $this.rst(0x30),
       0xfa => { let am = $this.immediate_word_address(); $this.ld_a(am); }
+      0xfb => { $this.enable_interrupts(); }
       0xfe => { let val = $this.immediate(); $this.cp(val); }
       0xff => $this.rst(0x38),
       _ => {}//println!("{}", $this)

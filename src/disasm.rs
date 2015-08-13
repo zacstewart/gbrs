@@ -126,6 +126,14 @@ impl Disassembler {
     println!("STOP");
   }
 
+  fn disable_interrupts(&self) {
+    println!("DI");
+  }
+
+  fn enable_interrupts(&self) {
+    println!("EI");
+  }
+
   fn daa(&self) {
     println!("DAA");
   }
