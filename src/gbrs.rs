@@ -282,8 +282,7 @@ fn main() {
   println!("Loading ROM and beginning emulation");
   let cart = Cartridge::load(&args[2]);
   let size = cart.size();
-  let mut gpu: GPU = GPU::new();
-  let mut mmu: MMU = MMU::new(gpu);
+  let mut mmu: MMU = MMU::new();
   mmu.load_cartridge(cart);
 
   match args[1].as_ref() {
