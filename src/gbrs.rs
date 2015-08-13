@@ -1,8 +1,6 @@
 use cpu::CPU;
 use disasm::Disassembler;
 use mmu::MMU;
-
-mod tests;
 use cartridge::Cartridge;
 use std::env;
 
@@ -272,6 +270,7 @@ mod disasm;
 mod mmu;
 mod cartridge;
 mod gpu;
+mod tests;
 mod memory_map;
 
 fn main() {
