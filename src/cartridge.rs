@@ -1,6 +1,7 @@
 use std::fs::File;
 use std::io::Read;
 use memory_map::ReadByte;
+use memory_map::{ReadByte, WriteByte};
 
 pub struct Cartridge {
     rom: Box<[u8]>
@@ -31,5 +32,11 @@ impl Cartridge {
 impl ReadByte for Cartridge {
     fn read_byte(&self, address: u16) -> u8 {
         self.rom[address as usize]
+    }
+}
+
+impl WriteByte for Cartridge {
+    fn write_byte(&mut self, address: u16, value: u8) {
+        println!("Write to Cart: {:2x} = {:2x}", address, value);
     }
 }
