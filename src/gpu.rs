@@ -112,14 +112,6 @@ impl WriteByte for GPU {
                 self.oam_interrupt = (value & 0b0010_0000) >> 5;
                 self.v_blank_interrupt = (value & 0b0001_0000) >> 4;
                 self.h_blank_interrupt = (value & 0b0000_1000) >> 3;
-                self.coincidence_flag = (value & 0b0000_0100) >> 2;
-                self.line_mode = match (value & 0b0000_0011) {
-                    0 => LineMode::HBlank,
-                    1 => LineMode::VBlank,
-                    2 => LineMode::OAMRead,
-                    3 => LineMode::VRAMRead,
-                    _ => panic!("Invalid line mode: {:2x}", value)
-                };
             }
             0xff42 => { self.scroll_y = value; }
             0xff43 => { self.scroll_x = value; }
