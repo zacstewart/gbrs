@@ -10,6 +10,8 @@ enum LineMode {
 }
 
 pub struct GPU {
+    scroll_y: u8,
+    scroll_x: u8,
     memory: [u8; 0xbf],
     vram: [u8; 8192],
     oam: [u8; 160],
@@ -32,6 +34,8 @@ pub struct GPU {
 impl GPU {
     pub fn new() -> GPU {
         GPU {
+            scroll_y: 0,
+            scroll_x: 0,
             memory: [0; 0xbf],
             vram: [0; 8192],
             oam: [0; 160],
@@ -81,6 +85,8 @@ impl ReadByte for GPU {
                 };
                 value
             }
+            0xff42 => { self.scroll_y }
+            0xff43 => { self.scroll_x }
             _ => { self.memory[(address - BASE) as usize] }
         }
     }
@@ -113,6 +119,8 @@ impl WriteByte for GPU {
                     _ => panic!("Invalid line mode: {:2x}", value)
                 };
             }
+            0xff42 => { self.scroll_y = value; }
+            0xff43 => { self.scroll_x = value; }
         }
     }
 }
