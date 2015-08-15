@@ -12,6 +12,7 @@ enum LineMode {
 pub struct GPU {
     scroll_y: u8,
     scroll_x: u8,
+    current_line: u8,
     memory: [u8; 0xbf],
     vram: [u8; 8192],
     oam: [u8; 160],
@@ -36,6 +37,7 @@ impl GPU {
         GPU {
             scroll_y: 0,
             scroll_x: 0,
+            current_line: 0,
             memory: [0; 0xbf],
             vram: [0; 8192],
             oam: [0; 160],
@@ -87,6 +89,7 @@ impl ReadByte for GPU {
             }
             0xff42 => { self.scroll_y }
             0xff43 => { self.scroll_x }
+            0xff44 => { self.current_line }
             _ => { self.memory[(address - BASE) as usize] }
         }
     }
