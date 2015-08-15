@@ -90,6 +90,7 @@ impl ReadByte for GPU {
             0xff43 => { self.scroll_x }
             0xff44 => { self.current_line }
             _ => { self.memory[(address - BASE) as usize] }
+            0xff45 => { self.lyc }
         }
     }
 }
@@ -115,6 +116,7 @@ impl WriteByte for GPU {
             }
             0xff42 => { self.scroll_y = value; }
             0xff43 => { self.scroll_x = value; }
+            0xff45 => { self.lyc = value; }
         }
     }
 }
