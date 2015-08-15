@@ -29,6 +29,10 @@ pub struct GPU {
     v_blank_interrupt: u8,
     h_blank_interrupt: u8,
     lyc: u8,
+    line_mode: LineMode,
+
+    window_position_y: u8,
+    window_position_x: u8
 }
 
 impl GPU {
@@ -52,6 +56,8 @@ impl GPU {
             h_blank_interrupt: 0,
             lyc: 0,
             line_mode: LineMode::OAMRead,
+            window_position_y: 0,
+            window_position_x: 0
         }
     }
 }
@@ -91,6 +97,8 @@ impl ReadByte for GPU {
             0xff44 => { self.current_line }
             _ => { self.memory[(address - BASE) as usize] }
             0xff45 => { self.lyc }
+            0xff4a => { self.window_position_y }
+            0xff4b => { self.window_position_x }
         }
     }
 }
@@ -117,6 +125,8 @@ impl WriteByte for GPU {
             0xff42 => { self.scroll_y = value; }
             0xff43 => { self.scroll_x = value; }
             0xff45 => { self.lyc = value; }
+            0xff4a => { self.window_position_y = value; }
+            0xff4b => { self.window_position_x = value; }
         }
     }
 }
