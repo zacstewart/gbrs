@@ -9,6 +9,34 @@ enum LineMode {
     VRAMRead = 3
 }
 
+enum Shade {
+    White,
+    LightGray,
+    DarkGray,
+    Black
+}
+
+impl Shade {
+    fn from_u8(value: u8) -> Shade {
+        match value {
+            0 => Shade::White,
+            1 => Shade::LightGray,
+            2 => Shade::DarkGray,
+            3 => Shade::Black,
+            _ => { panic!("Invalid shade: {}", value); }
+        }
+    }
+
+    fn to_u8(&self) -> u8 {
+        match *self {
+            Shade::White => 0,
+            Shade::LightGray => 1,
+            Shade::DarkGray => 2,
+            Shade::Black => 3
+        }
+    }
+}
+
 pub struct GPU {
     scroll_y: u8,
     scroll_x: u8,
@@ -32,7 +60,11 @@ pub struct GPU {
     line_mode: LineMode,
 
     window_position_y: u8,
-    window_position_x: u8
+    window_position_x: u8,
+
+    bg_palette: (Shade, Shade, Shade, Shade),
+    obj_0_palette: (Shade, Shade, Shade, Shade),
+    obj_1_palette: (Shade, Shade, Shade, Shade)
 }
 
 impl GPU {
@@ -57,7 +89,10 @@ impl GPU {
             lyc: 0,
             line_mode: LineMode::OAMRead,
             window_position_y: 0,
-            window_position_x: 0
+            window_position_x: 0,
+            bg_palette: (Shade::White, Shade::White, Shade::White, Shade::White),
+            obj_0_palette: (Shade::White, Shade::White, Shade::White, Shade::White),
+            obj_1_palette: (Shade::White, Shade::White, Shade::White, Shade::White)
         }
     }
 }
@@ -96,6 +131,24 @@ impl ReadByte for GPU {
             0xff43 => { self.scroll_x }
             0xff44 => { self.current_line }
             0xff45 => { self.lyc }
+            0xff47 => {
+                self.bg_palette.0.to_u8() |
+                    self.bg_palette.1.to_u8() << 2 |
+                    self.bg_palette.2.to_u8() << 4 |
+                    self.bg_palette.3.to_u8() << 6
+            }
+            0xff48 => {
+                self.obj_0_palette.0.to_u8() |
+                    self.obj_0_palette.1.to_u8() << 2 |
+                    self.obj_0_palette.2.to_u8() << 4 |
+                    self.obj_0_palette.3.to_u8() << 6
+            }
+            0xff49 => {
+                self.obj_1_palette.0.to_u8() |
+                    self.obj_0_palette.1.to_u8() << 2 |
+                    self.obj_0_palette.2.to_u8() << 4 |
+                    self.obj_0_palette.3.to_u8() << 6
+            }
             0xff4a => { self.window_position_y }
             0xff4b => { self.window_position_x }
             _ => { println!("Read GPU: {:04x}", address); self.memory[(address - BASE) as usize] }
@@ -125,6 +178,30 @@ impl WriteByte for GPU {
             0xff42 => { self.scroll_y = value; }
             0xff43 => { self.scroll_x = value; }
             0xff45 => { self.lyc = value; }
+            0xff47 => {
+                self.bg_palette = (
+                    Shade::from_u8(value & 0b0000_0011),
+                    Shade::from_u8((value & 0b0000_1100) >> 2),
+                    Shade::from_u8((value & 0b0011_0000) >> 4),
+                    Shade::from_u8((value & 0b1100_0000) >> 6)
+                );
+            }
+            0xff48 => {
+                self.obj_0_palette = (
+                    Shade::from_u8(value & 0b0000_0011),
+                    Shade::from_u8((value & 0b0000_1100) >> 2),
+                    Shade::from_u8((value & 0b0011_0000) >> 4),
+                    Shade::from_u8((value & 0b1100_0000) >> 6)
+                );
+            }
+            0xff49 => {
+                self.obj_1_palette = (
+                    Shade::from_u8(value & 0b0000_0011),
+                    Shade::from_u8((value & 0b0000_1100) >> 2),
+                    Shade::from_u8((value & 0b0011_0000) >> 4),
+                    Shade::from_u8((value & 0b1100_0000) >> 6)
+                );
+            }
             0xff4a => { self.window_position_y = value; }
             0xff4b => { self.window_position_x = value; }
             _ => { println!("Write GPU: {:04x} = {:02x}", address, value); self.memory[(address - BASE) as usize] = value; }
