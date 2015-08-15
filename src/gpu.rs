@@ -28,8 +28,7 @@ pub struct GPU {
     oam_interrupt: u8,
     v_blank_interrupt: u8,
     h_blank_interrupt: u8,
-    coincidence_flag: u8,
-    line_mode: LineMode
+    lyc: u8,
 }
 
 impl GPU {
@@ -51,7 +50,7 @@ impl GPU {
             oam_interrupt: 0,
             v_blank_interrupt: 0,
             h_blank_interrupt: 0,
-            coincidence_flag: 0,
+            lyc: 0,
             line_mode: LineMode::OAMRead,
         }
     }
@@ -78,7 +77,7 @@ impl ReadByte for GPU {
                 value |= ((self.oam_interrupt & 1) << 5);
                 value |= ((self.v_blank_interrupt & 1) << 4);
                 value |= ((self.h_blank_interrupt & 1) << 3);
-                value |= ((self.coincidence_flag & 1) << 2);
+                if (self.current_line == self.lyc) { value |= 0b0000_0100; }
                 value |= match self.line_mode {
                     LineMode::HBlank => 0,
                     LineMode::VBlank => 1,
