@@ -95,10 +95,10 @@ impl ReadByte for GPU {
             0xff42 => { self.scroll_y }
             0xff43 => { self.scroll_x }
             0xff44 => { self.current_line }
-            _ => { self.memory[(address - BASE) as usize] }
             0xff45 => { self.lyc }
             0xff4a => { self.window_position_y }
             0xff4b => { self.window_position_x }
+            _ => { println!("Read GPU: {:04x}", address); self.memory[(address - BASE) as usize] }
         }
     }
 }
@@ -127,6 +127,7 @@ impl WriteByte for GPU {
             0xff45 => { self.lyc = value; }
             0xff4a => { self.window_position_y = value; }
             0xff4b => { self.window_position_x = value; }
+            _ => { println!("Write GPU: {:04x} = {:02x}", address, value); self.memory[(address - BASE) as usize] = value; }
         }
     }
 }
