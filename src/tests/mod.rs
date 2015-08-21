@@ -6,7 +6,8 @@ use cartridge::Cartridge;
 
 #[test]
 fn ld_bc_immediate_word() {
-    let cart = Cartridge::load("data/ld_bc_d16.gb");
+    let rom = vec!(0x01, 0xfe, 0xca, 0x10).into_boxed_slice();
+    let cart = Cartridge::new(rom);
     let mut mmu: MMU = MMU::new();
     mmu.load_cartridge(cart);
     let mut cpu: CPU = CPU::new(mmu);
@@ -19,7 +20,11 @@ fn ld_bc_immediate_word() {
 
 #[test]
 fn registers_8bit_wrap_around_upon_overflow() {
-    let cart = Cartridge::load("data/overflow_8bit_registers.gb");
+    let rom = vec!(
+        0x3e, 0xff, 0x04, 0x0c, 0x14, 0x1c, 0x24, 0x2c, 0x3d, 0xc2,
+        0x02, 0x00, 0x04, 0x0c, 0x14, 0x1c, 0x24, 0x2c, 0x3d, 0x10
+    ).into_boxed_slice();
+    let cart = Cartridge::new(rom);
     let mut mmu: MMU = MMU::new();
     mmu.load_cartridge(cart);
     let mut cpu: CPU = CPU::new(mmu);
@@ -35,7 +40,11 @@ fn registers_8bit_wrap_around_upon_overflow() {
 
 #[test]
 fn registers_8bit_wrap_around_upon_underflow() {
-    let cart = Cartridge::load("data/underflow_8bit_registers.gb");
+    let rom = vec!(
+        0x3e, 0x00, 0x05, 0x0d, 0x15, 0x1d, 0x25, 0x2d, 0x3c, 0xc2,
+        0x02, 0x00, 0x05, 0x0d, 0x15, 0x1d, 0x25, 0x2d, 0x3c, 0x10
+    ).into_boxed_slice();
+    let cart = Cartridge::new(rom);
     let mut mmu: MMU = MMU::new();
     mmu.load_cartridge(cart);
     let mut cpu: CPU = CPU::new(mmu);
