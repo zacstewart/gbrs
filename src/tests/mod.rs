@@ -10,7 +10,9 @@ fn ld_bc_immediate_word() {
     let mut mmu: MMU = MMU::new();
     mmu.load_cartridge(cart);
     let mut cpu: CPU = CPU::new(mmu);
-    cpu.execute();
+    while !cpu.stopped {
+        cpu.step();
+    }
     assert_eq!(cpu.b, 0xca);
     assert_eq!(cpu.c, 0xfe);
 }
@@ -21,7 +23,9 @@ fn registers_8bit_wrap_around_upon_overflow() {
     let mut mmu: MMU = MMU::new();
     mmu.load_cartridge(cart);
     let mut cpu: CPU = CPU::new(mmu);
-    cpu.execute();
+    while !cpu.stopped {
+        cpu.step();
+    }
     assert_eq!(cpu.b, 0);
     assert_eq!(cpu.c, 0);
     assert_eq!(cpu.d, 0);
@@ -35,7 +39,9 @@ fn registers_8bit_wrap_around_upon_underflow() {
     let mut mmu: MMU = MMU::new();
     mmu.load_cartridge(cart);
     let mut cpu: CPU = CPU::new(mmu);
-    cpu.execute();
+    while !cpu.stopped {
+        cpu.step();
+    }
     assert_eq!(cpu.b, 255);
     assert_eq!(cpu.c, 255);
     assert_eq!(cpu.d, 255);
@@ -64,7 +70,9 @@ fn registers_16bit_wrap_around_upon_overflow() {
     let mut mmu: MMU = MMU::new();
     mmu.load_cartridge(cart);
     let mut cpu: CPU = CPU::new(mmu);
-    cpu.execute();
+    while !cpu.stopped {
+        cpu.step();
+    }
     assert_eq!(cpu.b, 0);
     assert_eq!(cpu.c, 0);
     assert_eq!(cpu.d, 0);
@@ -95,7 +103,9 @@ fn registers_16bt_wrap_around_upon_underflow() {
     let mut mmu: MMU = MMU::new();
     mmu.load_cartridge(cart);
     let mut cpu: CPU = CPU::new(mmu);
-    cpu.execute();
+    while !cpu.stopped {
+        cpu.step();
+    }
     assert_eq!(cpu.b, 255);
     assert_eq!(cpu.c, 255);
     assert_eq!(cpu.d, 255);

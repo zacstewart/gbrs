@@ -43,7 +43,7 @@ pub struct GPU {
     current_line: u8,
     memory: [u8; 0xbf],
     vram: [u8; 8192],
-    oam: [u8; 160],
+    pub oam: [u8; OAM_SIZE],
 
     lcd_on: bool,               // LCDC
     bg_tile_select: u8,
