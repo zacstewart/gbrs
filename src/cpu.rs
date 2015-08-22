@@ -201,7 +201,7 @@ impl CPU {
 
   fn take_word(&mut self) -> u16 {
     let immediate = self.mmu.read_word(self.pc);
-    self.pc = self.pc + 2;
+    self.pc = (W(self.pc) + W(2)).0;
     return immediate;
   }
 
@@ -215,13 +215,13 @@ impl CPU {
 
   fn pop_word(&mut self) -> u16 {
     let value = self.mmu.read_word(self.sp);
-    self.sp = self.sp + 2;
+    let sp = (W(self.sp) + W(2)).0;
     return value;
   }
 
   fn push_word(&mut self, value: u16) {
     self.mmu.write_word(self.sp, value);
-    self.sp = self.sp - 2;
+    self.sp = (W(self.sp) - W(2)).0;
   }
 
   // Addressing
@@ -968,7 +968,7 @@ impl CPU {
   fn jr<AM:AddressingMode>(&mut self, am: AM) {
     match am.load(self) {
       Data::SignedByte(byte) => {
-        self.pc += byte as u16;
+        self.pc = (W(self.pc) + W(byte as u16)).0;
       },
       _ => panic!()
     }
