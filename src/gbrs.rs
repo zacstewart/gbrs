@@ -263,7 +263,75 @@ macro_rules! decode_op {
 macro_rules! decode_prefixed_op {
   ($op:expr, $this:ident) => {
     match $op {
-      _ => println!("Prefixed op: {:2x}", $op)
+        0x40 => { let val = $this.register_b(); $this.bit(0, val) }
+        0x41 => { let val = $this.register_c(); $this.bit(0, val) }
+        0x42 => { let val = $this.register_d(); $this.bit(0, val) }
+        0x43 => { let val = $this.register_e(); $this.bit(0, val) }
+        0x44 => { let val = $this.register_h(); $this.bit(0, val) }
+        0x45 => { let val = $this.register_l(); $this.bit(0, val) }
+        0x46 => { let val = $this.address_hl(); $this.bit(0, val) }
+        0x47 => { let val = $this.register_a(); $this.bit(0, val) }
+        0x48 => { let val = $this.register_b(); $this.bit(1, val) }
+        0x49 => { let val = $this.register_c(); $this.bit(1, val) }
+        0x4a => { let val = $this.register_d(); $this.bit(1, val) }
+        0x4b => { let val = $this.register_e(); $this.bit(1, val) }
+        0x4c => { let val = $this.register_h(); $this.bit(1, val) }
+        0x4d => { let val = $this.register_l(); $this.bit(1, val) }
+        0x4e => { let val = $this.address_hl(); $this.bit(1, val) }
+        0x4f => { let val = $this.register_a(); $this.bit(1, val) }
+
+        0x50 => { let val = $this.register_b(); $this.bit(2, val) }
+        0x51 => { let val = $this.register_c(); $this.bit(2, val) }
+        0x52 => { let val = $this.register_d(); $this.bit(2, val) }
+        0x53 => { let val = $this.register_e(); $this.bit(2, val) }
+        0x54 => { let val = $this.register_h(); $this.bit(2, val) }
+        0x55 => { let val = $this.register_l(); $this.bit(2, val) }
+        0x56 => { let val = $this.address_hl(); $this.bit(2, val) }
+        0x57 => { let val = $this.register_a(); $this.bit(2, val) }
+        0x58 => { let val = $this.register_b(); $this.bit(3, val) }
+        0x59 => { let val = $this.register_c(); $this.bit(3, val) }
+        0x5a => { let val = $this.register_d(); $this.bit(3, val) }
+        0x5b => { let val = $this.register_e(); $this.bit(3, val) }
+        0x5c => { let val = $this.register_h(); $this.bit(3, val) }
+        0x5d => { let val = $this.register_l(); $this.bit(3, val) }
+        0x5e => { let val = $this.address_hl(); $this.bit(3, val) }
+        0x5f => { let val = $this.register_a(); $this.bit(3, val) }
+
+        0x60 => { let val = $this.register_b(); $this.bit(4, val) }
+        0x61 => { let val = $this.register_c(); $this.bit(4, val) }
+        0x62 => { let val = $this.register_d(); $this.bit(4, val) }
+        0x63 => { let val = $this.register_e(); $this.bit(4, val) }
+        0x64 => { let val = $this.register_h(); $this.bit(4, val) }
+        0x65 => { let val = $this.register_l(); $this.bit(4, val) }
+        0x66 => { let val = $this.address_hl(); $this.bit(4, val) }
+        0x67 => { let val = $this.register_a(); $this.bit(4, val) }
+        0x68 => { let val = $this.register_b(); $this.bit(5, val) }
+        0x69 => { let val = $this.register_c(); $this.bit(5, val) }
+        0x6a => { let val = $this.register_d(); $this.bit(5, val) }
+        0x6b => { let val = $this.register_e(); $this.bit(5, val) }
+        0x6c => { let val = $this.register_h(); $this.bit(5, val) }
+        0x6d => { let val = $this.register_l(); $this.bit(5, val) }
+        0x6e => { let val = $this.address_hl(); $this.bit(5, val) }
+        0x6f => { let val = $this.register_a(); $this.bit(5, val) }
+
+        0x70 => { let val = $this.register_b(); $this.bit(6, val) }
+        0x71 => { let val = $this.register_c(); $this.bit(6, val) }
+        0x72 => { let val = $this.register_d(); $this.bit(6, val) }
+        0x73 => { let val = $this.register_e(); $this.bit(6, val) }
+        0x74 => { let val = $this.register_h(); $this.bit(6, val) }
+        0x75 => { let val = $this.register_l(); $this.bit(6, val) }
+        0x76 => { let val = $this.address_hl(); $this.bit(6, val) }
+        0x77 => { let val = $this.register_a(); $this.bit(6, val) }
+        0x78 => { let val = $this.register_b(); $this.bit(7, val) }
+        0x79 => { let val = $this.register_c(); $this.bit(7, val) }
+        0x7a => { let val = $this.register_d(); $this.bit(7, val) }
+        0x7b => { let val = $this.register_e(); $this.bit(7, val) }
+        0x7c => { let val = $this.register_h(); $this.bit(7, val) }
+        0x7d => { let val = $this.register_l(); $this.bit(7, val) }
+        0x7e => { let val = $this.address_hl(); $this.bit(7, val) }
+        0x7f => { let val = $this.register_a(); $this.bit(7, val) }
+
+        _ => println!("Prefixed op: {:2x}", $op)
     }
   }
 }

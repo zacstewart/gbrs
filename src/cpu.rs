@@ -1246,6 +1246,21 @@ impl CPU {
     self.flags.h = false;
     self.flags.c = !self.flags.c;
   }
+
+  // Bit opcodes
+
+  fn bit<AM:AddressingMode>(&mut self, bit: u8, am: AM) {
+      match am.load(self) {
+          Data::Byte(value) => {
+              let check = 1 << bit;
+              self.flags.z = value & check == 0;
+              self.flags.n = false;
+              self.flags.h = true;
+          }
+          _ => panic!("Unexpected addressing mode")
+      }
+      self.m = 8;
+  }
 }
 
 fn get_lower_bytes(word: u16) -> u8 {
