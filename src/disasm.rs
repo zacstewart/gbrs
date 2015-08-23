@@ -511,4 +511,8 @@ impl Disassembler {
   fn rst(&self, address: u16) {
     println!("RST {:x}H", address);
   }
+
+  fn bit(&self, bit: u8, am: String) {
+      println!("BIT {},{}", bit, am);
+  }
 }
