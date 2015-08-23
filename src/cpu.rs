@@ -428,23 +428,6 @@ impl CPU {
     }
   }
 
-  fn ld_sp<AM:AddressingMode>(&mut self, am: AM) {
-    match am.load(self) {
-      Data::Word(word) => self.sp = word,
-      _ => {}
-    }
-  }
-
-  fn ld_de<AM:AddressingMode>(&mut self, am: AM) {
-    match am.load(self) {
-      Data::Word(word) => {
-        self.e = get_upper_bytes(word);
-        self.d = get_lower_bytes(word);
-      },
-      _ => panic!("Unexpected addressing mode")
-    }
-  }
-
   fn pop_bc(&mut self) {
     let value = self.pop_word();
     self.set_bc(value);
@@ -669,10 +652,27 @@ impl CPU {
     }
   }
 
+  fn ld_de<AM:AddressingMode>(&mut self, am: AM) {
+    match am.load(self) {
+      Data::Word(word) => {
+        self.e = get_upper_bytes(word);
+        self.d = get_lower_bytes(word);
+      },
+      _ => panic!("Unexpected addressing mode")
+    }
+  }
+
   fn ld_hl<AM:AddressingMode>(&mut self, am: AM) {
     match am.load(self) {
       Data::Word(word) => self.set_hl(word),
       _ => panic!("Unexpected addressing mode")
+    }
+  }
+
+  fn ld_sp<AM:AddressingMode>(&mut self, am: AM) {
+    match am.load(self) {
+      Data::Word(word) => self.sp = word,
+      _ => {}
     }
   }
 
