@@ -84,8 +84,23 @@ fn ld_bc_immediate_word() {
 #[test]
 fn registers_8bit_wrap_around_upon_overflow() {
     let rom = make_rom!(
-        0x3e, 0xff, 0x04, 0x0c, 0x14, 0x1c, 0x24, 0x2c, 0x3d, 0xc2,
-        0x02, 0x00, 0x04, 0x0c, 0x14, 0x1c, 0x24, 0x2c, 0x3d, 0x10
+        0x3e, 0xff,         // LD A, 0xff
+        0x04,               // INC B
+        0x0c,               // INC C
+        0x14,               // INC D
+        0x1c,               // INC E
+        0x24,               // INC H
+        0x2c,               // INC L
+        0x3d,               // DEC A
+        0xc2, 0x52, 0x01,   // JP NZ, 0x0152
+        0x04,               // INC B
+        0x0c,               // INC C
+        0x14,               // INC D
+        0x1c,               // INC E
+        0x24,               // INC H
+        0x2c,               // INC L
+        0x3d,               // DEC A
+        0x10                // STOP
     );
     let cart = Cartridge::new(rom);
     let mut mmu: MMU = MMU::new();
