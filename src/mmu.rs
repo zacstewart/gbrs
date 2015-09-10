@@ -8,6 +8,7 @@ pub struct MMU {
   pub working_ram: [u8; 0x2000],
   pub hram: [u8; 127],
   pub gpu: GPU
+  pub ie: u8
 }
 
 impl MMU {
@@ -17,6 +18,7 @@ impl MMU {
       working_ram: [0; 0x2000],
       hram: [0; 127],
       gpu: GPU::new()
+      ie: 0
     }
   }
 
@@ -54,7 +56,7 @@ impl ReadByte for MMU {
       0xff00...0xff3f => { println!("Reading I/O: {:2x}", address); 0}      // Memory-mapped I/O
       0xff40...0xff7f => { self.gpu.read_byte(address) }                    // GPU
       0xff80...0xfffe => { self.hram[(address & 0x7f) as usize] }           // Zero-page RAM (High RAM, HRAM)
-      0xffff => { 0 }                                                       // Interrupt enable register
+      0xffff => { self.ie }                                                 // Interrupt enable register
       _ => { panic!("Read memory out of bounds: {}", address) }
     }
   }
@@ -74,7 +76,7 @@ impl WriteByte for MMU {
       0xff00...0xff3f => { println!("Writing I/O: {:2x} = {:2x}", address, value); }    // Memory-mapped I/O
       0xff40...0xff7f => { self.gpu.write_byte(address, value) }                        // GPU
       0xff80...0xfffe => { self.hram[(address & 0x7f) as usize] = value }               // Zero-page RAM (High RAM, HRAM)
-      0xffff => { println!("Write to interrupt enable register: {:2x} = {:2x}", address, value) } // Interrupt enable register
+      0xffff => { self.ie = value }                                                     // Interrupt enable register
       _ => { panic!("Wrote memory out of bounds: {:2x}", address) }
     }
   }
