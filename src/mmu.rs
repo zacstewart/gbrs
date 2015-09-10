@@ -63,7 +63,6 @@ impl ReadByte for MMU {
       0xc000...0xdfff => { self.working_ram[(address & 0x1fff) as usize] }  // Working ram (WRAM)
       0xe000...0xfdff => { self.working_ram[(address & 0x1fff) as usize] }  // Shadow RAM (ECHO)
       0xfe00...0xfe9f => { self.gpu.read_byte(address) }                    // Sprite attribute table (OAM) [GPU]
-      0xff40...0xff7f => { self.gpu.read_byte(address) }                    // GPU
       0xfea0...0xfeff => { 0 }                                              // Unusable
       0xff00          => { self.joypad.read_byte(address) }                 // P1
       0xff01...0xff02 => { println!("Serial: {:04x}", address); 0 }         // Serial data transfer
@@ -71,6 +70,8 @@ impl ReadByte for MMU {
       0xff04...0xff07 => { self.timer.read_byte(address) }                  // Timer and divider
       0xff08...0xff0f => { println!("Reading I/O: {:2x}", address); 0}      // Memory-mapped I/O
       0xff10...0xff3f => { 0 } // Sound
+      0xff40...0xff4b => { self.gpu.read_byte(address) }                    // GPU
+      0xff4c...0xff7f => { 0 }                                              // Unusable
       0xff80...0xfffe => { self.hram[(address & 0x7f) as usize] }           // Zero-page RAM (High RAM, HRAM)
       0xffff => { self.ie }                                                 // Interrupt enable register
       _ => { panic!("Read memory out of bounds: {}", address) }
@@ -89,13 +90,14 @@ impl WriteByte for MMU {
       0xe000...0xfdff => { self.working_ram[(address & 0x1fff) as usize] = value }      // Shadow RAM (ECHO)
       0xfe00...0xfe9f => { self.gpu.write_byte(address, value) }                        // Sprite info
       0xfea0...0xfeff => { }                                                            // Unusable
-      0xff40...0xff7f => { self.gpu.write_byte(address, value) }                        // GPU
       0xff00          => { self.joypad.write_byte(address, value) }                     // P1
       0xff01...0xff02 => { println!("Serial: {:04x} = {:02x}", address, value); }       // Serial data transfer
       0xff03          => { println!("Unknown: {:04x} = {:02x}", address, value);}
       0xff04...0xff07 => { self.timer.write_byte(address, value); }                     // Timer and divider
       0xff08...0xff0f => { println!("Writing I/O: {:2x} = {:2x}", address, value); }    // Memory-mapped I/O
       0xff10...0xff3f => { } // Sound
+      0xff40...0xff4b => { self.gpu.write_byte(address, value) }                        // GPU
+      0xff4c...0xff7f => { }                                                            // Unusable
       0xff80...0xfffe => { self.hram[(address & 0x7f) as usize] = value }               // Zero-page RAM (High RAM, HRAM)
       0xffff => { self.ie = value }                                                     // Interrupt enable register
       _ => { panic!("Wrote memory out of bounds: {:2x}", address) }
