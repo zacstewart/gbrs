@@ -164,6 +164,10 @@ impl Disassembler {
     println!("LD HL,{}", am);
   }
 
+  fn ld_hl_sp_plus_immediate_signed(&mut self) {
+      println!("LD HL, SP+{}", self.take_byte() as i8);
+  }
+
   fn ld_sp(&self, am: String) {
     println!("LD SP,{}", am);
   }

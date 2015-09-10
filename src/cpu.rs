@@ -670,6 +670,13 @@ impl CPU {
     }
   }
 
+  fn ld_hl_sp_plus_immediate_signed(&mut self) {
+    let  sp = self.sp as i16;
+    let immediate = self.take_byte() as i16;
+
+    self.set_hl((W(sp) + W(immediate)).0 as u16);
+  }
+
   fn ldh_a<AM:AddressingMode>(&mut self, am: AM) {
     match am.load(self) {
       Data::Byte(b) => {
