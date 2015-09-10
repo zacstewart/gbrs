@@ -4,8 +4,7 @@ name = "gbrs"
 version = "0.0.1"
 authors = ["Zac Stewart <zgstewart@gmail.com>"]
 
-[[bin]]
-
-name = "gbrs"
-test = true
-doc = false
+[dependencies]
+env_logger = "0.3"
+log = "0.3.2"
+sdl2 = "0.8"

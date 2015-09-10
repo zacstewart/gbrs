@@ -1,10 +1,5 @@
-#![feature(convert)]
-use std::convert::AsRef;
-use cpu::CPU;
-use disasm::Disassembler;
-use mmu::MMU;
-use cartridge::Cartridge;
-use std::env;
+#[macro_use]
+extern crate log;
 
 macro_rules! decode_op {
   ($op:expr, $this:ident) => {
@@ -251,12 +246,13 @@ macro_rules! decode_op {
       0xf5 => $this.push_af(),
       0xf6 => { let val = $this.immediate(); $this.or(val); }
       0xf7 => $this.rst(0x30),
+      0xf8 => { $this.ld_hl_sp_plus_immediate_signed() }
       0xf9 => { let am = $this.register_hl(); $this.ld_sp(am); }
       0xfa => { let am = $this.immediate_word_address(); $this.ld_a(am); }
       0xfb => { $this.enable_interrupts(); }
       0xfe => { let val = $this.immediate(); $this.cp(val); }
       0xff => $this.rst(0x38),
-      _ => { println!("Unknown OP: {:2x}", $op) }
+      _ => { panic!("Unknown OP: {:2x}", $op) }
     }
   }
 }
@@ -336,34 +332,11 @@ macro_rules! decode_prefixed_op {
   }
 }
 
-mod cpu;
-mod disasm;
-mod mmu;
-mod cartridge;
+pub mod cpu;
+pub mod disasm;
+pub mod mmu;
+pub mod cartridge;
 mod gpu;
-mod tests;
+mod joypad;
+mod timer;
 mod memory_map;
-
-fn main() {
-  let args: Vec<_> = env::args().collect();
-
-  println!("Loading ROM and beginning emulation");
-  let cart = Cartridge::load(&args[2]);
-  let size = cart.size();
-  let mut mmu: MMU = MMU::new();
-  mmu.load_cartridge(cart);
-
-  match args[1].as_ref() {
-      "run" => {
-          let mut cpu: CPU = CPU::new(mmu);
-          while !cpu.stopped {
-              cpu.step();
-          }
-      }
-      "disasm" => {
-          let mut disasm = Disassembler::new(mmu);
-          disasm.disassemble(size);
-      }
-      _ => {}
-  }
-}
