@@ -119,8 +119,21 @@ fn registers_8bit_wrap_around_upon_overflow() {
 #[test]
 fn registers_8bit_wrap_around_upon_underflow() {
     let mut rom = make_rom!(
-        0x3e, 0x00, 0x05, 0x0d, 0x15, 0x1d, 0x25, 0x2d, 0x3c, 0xc2,
-        0x02, 0x00, 0x05, 0x0d, 0x15, 0x1d, 0x25, 0x2d, 0x3c, 0x10
+        0x06, 0x00, // LD B, 0x00
+        0x0e, 0x00, // LD C, 0x00
+        0x16, 0x00, // LD D, 0x00
+        0x1e, 0x00, // LD E, 0x00
+        0x26, 0x00, // LD H, 0x00
+        0x2e, 0x00, // LD L, 0x00
+        0x3e, 0x00, // LD A, 0x00
+        0x05,       // DEC B
+        0x0d,       // DEC C
+        0x15,       // DEC D
+        0x1d,       // DEC E
+        0x25,       // DEC H
+        0x2d,       // DEC L
+        0x3d,       // DEC A
+        0x10        // STOP
     );
     let mut checksum = 0u8;
     for i in (0x0134..0x014c) {
@@ -138,7 +151,9 @@ fn registers_8bit_wrap_around_upon_underflow() {
     assert_eq!(cpu.c, 255);
     assert_eq!(cpu.d, 255);
     assert_eq!(cpu.e, 255);
-    assert_eq!(cpu.a, 1);
+    assert_eq!(cpu.h, 255);
+    assert_eq!(cpu.l, 255);
+    assert_eq!(cpu.a, 255);
 }
 
 #[test]
