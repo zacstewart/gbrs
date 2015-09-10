@@ -901,6 +901,8 @@ impl CPU {
     }
   }
 
+  // Rotations
+
   fn rlca(&mut self) {
     // put bit 7 of a in carry flag
     if (self.a & 0x80) == 0x80 {
