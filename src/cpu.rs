@@ -633,7 +633,6 @@ impl CPU {
 
   fn nop(&mut self) {
     self.m = 1;
-    self.t = 4;
   }
 
   fn ld_bc<AM:AddressingMode>(&mut self, am: AM) {
