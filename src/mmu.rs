@@ -52,9 +52,9 @@ impl ReadByte for MMU {
       0xc000...0xdfff => { self.working_ram[(address & 0x1fff) as usize] }  // Working ram (WRAM)
       0xe000...0xfdff => { self.working_ram[(address & 0x1fff) as usize] }  // Shadow RAM (ECHO)
       0xfe00...0xfe9f => { self.gpu.read_byte(address) }                    // Sprite attribute table (OAM) [GPU]
-      0xfea0...0xfeff => 0,                                                 // Unusable
       0xff00...0xff3f => { println!("Reading I/O: {:2x}", address); 0}      // Memory-mapped I/O
       0xff40...0xff7f => { self.gpu.read_byte(address) }                    // GPU
+      0xfea0...0xfeff => { 0 }                                              // Unusable
       0xff80...0xfffe => { self.hram[(address & 0x7f) as usize] }           // Zero-page RAM (High RAM, HRAM)
       0xffff => { self.ie }                                                 // Interrupt enable register
       _ => { panic!("Read memory out of bounds: {}", address) }
