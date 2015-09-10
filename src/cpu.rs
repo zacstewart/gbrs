@@ -187,7 +187,7 @@ impl CPU {
   pub fn step(&mut self) {
     let instruction = self.take_byte();
     decode_op!(instruction, self);
-    self.clock.m = (W(self.clock.m) + W(self.m)).0;
+    self.clock.m = (W(self.clock.m) + W(self.m as u16)).0;
     self.mmu.step(self.m);
     if self.pc == 0x100 { self.mmu.leave_bios(); }
   }
