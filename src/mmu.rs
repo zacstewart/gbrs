@@ -48,6 +48,10 @@ impl MMU {
     self.write_byte(address, upper);
     self.write_byte(address, lower);
   }
+
+  pub fn leave_bios(&mut self) {
+      self.cartridge.leave_bios();
+  }
 }
 
 impl ReadByte for MMU {
