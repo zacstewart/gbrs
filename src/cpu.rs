@@ -151,8 +151,8 @@ pub struct CPU {
   pub l: u8,
 
   // Clock
-  m: u16,
   t: u16,
+  m: u8,
 
   flags: Flags,
   interrups: bool,
@@ -188,7 +188,7 @@ impl CPU {
     let instruction = self.take_byte();
     decode_op!(instruction, self);
     self.clock.m = (W(self.clock.m) + W(self.m)).0;
-    self.mmu.step(self.clock.m);
+    self.mmu.step(self.m);
   }
 
   // Fetch from program
