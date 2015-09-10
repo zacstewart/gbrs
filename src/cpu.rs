@@ -970,18 +970,17 @@ impl CPU {
   fn jr<AM:AddressingMode>(&mut self, am: AM) {
     match am.load(self) {
       Data::SignedByte(byte) => {
-        self.pc = (W(self.pc) + W(byte as u16)).0;
+        self.pc = (W(self.pc as i16) + W(byte as i16)).0 as u16;
       },
       _ => panic!()
     }
-    self.m = 8;
   }
 
   fn jr_nz<AM:AddressingMode>(&mut self, am: AM) {
     match am.load(self) {
       Data::SignedByte(byte) => {
         if !self.flags.z {
-          self.pc = (W(self.pc) + W(byte as u16)).0;
+          self.pc = (W(self.pc as i16) + W(byte as i16)).0 as u16;
         }
       },
       _ => panic!("Unexpected addressing mode")
@@ -992,7 +991,7 @@ impl CPU {
     match am.load(self) {
       Data::SignedByte(byte) => {
         if self.flags.z {
-          self.pc += byte as u16
+          self.pc = (W(self.pc as i16) + W(byte as i16)).0 as u16;
         }
       },
       _ => panic!("Unexpected addressing mode")
@@ -1003,7 +1002,7 @@ impl CPU {
     match am.load(self) {
       Data::SignedByte(byte) => {
         if !self.flags.c {
-          self.pc += byte as u16
+          self.pc = (W(self.pc as i16) + W(byte as i16)).0 as u16;
         }
       },
       _ => panic!("Unexpected addressing mode")
@@ -1014,7 +1013,7 @@ impl CPU {
     match am.load(self) {
       Data::SignedByte(byte) => {
         if self.flags.c {
-          self.pc += byte as u16
+          self.pc = (W(self.pc as i16) + W(byte as i16)).0 as u16;
         }
       },
       _ => panic!("Unexpected addressing mode")
