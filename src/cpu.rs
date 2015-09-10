@@ -252,7 +252,7 @@ impl CPU {
   }
 
   fn address_de(&mut self) -> MemoryAddressingMode {
-    let address = ((self.d as u16) << 8) + self.e as u16;
+    let address = ((self.d as u16) << 8) | self.e as u16;
     self.address(address)
   }
 
@@ -262,13 +262,13 @@ impl CPU {
   }
 
   fn address_hli(&mut self) -> MemoryAddressingMode {
-    let address = ((self.h as u16) << 8) + self.l as u16;
+    let address = ((self.h as u16) << 8) | self.l as u16;
     self.inc_hl();
     self.address(address)
   }
 
   fn address_hld(&mut self) -> MemoryAddressingMode {
-    let address = ((self.h as u16) << 8) + self.l as u16;
+    let address = ((self.h as u16) << 8) | self.l as u16;
     self.dec_hl();
     self.address(address)
   }
