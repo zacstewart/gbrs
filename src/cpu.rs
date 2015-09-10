@@ -1,12 +1,7 @@
 use mmu::MMU;
 use std::num::Wrapping as W;
 use memory_map::{ReadByte, WriteByte};
-
-enum Data {
-  Byte(u8),
-  SignedByte(i8),
-  Word(u16)
-}
+use data::Data;
 
 trait AddressingMode {
   fn load(&self, cpu: &mut CPU) -> Data;

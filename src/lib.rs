@@ -340,3 +340,4 @@ mod gpu;
 mod joypad;
 mod timer;
 mod memory_map;
+mod data;
