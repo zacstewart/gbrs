@@ -150,8 +150,7 @@ pub struct CPU {
   pub h: u8,
   pub l: u8,
 
-  // Clock
-  t: u16,
+  // Internal clock
   m: u8,
 
   flags: Flags,
