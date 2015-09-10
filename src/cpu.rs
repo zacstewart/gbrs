@@ -171,7 +171,6 @@ impl CPU {
       h: 0,
       l: 0,
       m: 0,
-      t: 0,
       flags: flags,
       interrups: true,
       stopped: false
