@@ -84,23 +84,21 @@ fn ld_bc_immediate_word() {
 #[test]
 fn registers_8bit_wrap_around_upon_overflow() {
     let rom = make_rom!(
-        0x3e, 0xff,         // LD A, 0xff
-        0x04,               // INC B
-        0x0c,               // INC C
-        0x14,               // INC D
-        0x1c,               // INC E
-        0x24,               // INC H
-        0x2c,               // INC L
-        0x3d,               // DEC A
-        0xc2, 0x52, 0x01,   // JP NZ, 0x0152
-        0x04,               // INC B
-        0x0c,               // INC C
-        0x14,               // INC D
-        0x1c,               // INC E
-        0x24,               // INC H
-        0x2c,               // INC L
-        0x3d,               // DEC A
-        0x10                // STOP
+        0x06, 0xff, // LD B, 0xff
+        0x0e, 0xff, // LD C, 0xff
+        0x16, 0xff, // LD D, 0xff
+        0x1e, 0xff, // LD E, 0xff
+        0x26, 0xff, // LD H, 0xff
+        0x2e, 0xff, // LD L, 0xff
+        0x3e, 0xff, // LD A, 0xff
+        0x04,       // INC B
+        0x0c,       // INC C
+        0x14,       // INC D
+        0x1c,       // INC E
+        0x24,       // INC H
+        0x2c,       // INC L
+        0x3c,       // INC A
+        0x10        // STOP
     );
     let cart = Cartridge::new(rom);
     let mut mmu: MMU = MMU::new();
@@ -113,7 +111,9 @@ fn registers_8bit_wrap_around_upon_overflow() {
     assert_eq!(cpu.c, 0);
     assert_eq!(cpu.d, 0);
     assert_eq!(cpu.e, 0);
-    assert_eq!(cpu.a, 255);
+    assert_eq!(cpu.h, 0);
+    assert_eq!(cpu.l, 0);
+    assert_eq!(cpu.a, 0);
 }
 
 #[test]
