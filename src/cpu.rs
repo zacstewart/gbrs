@@ -517,8 +517,8 @@ impl CPU {
 
   fn add_sp<AM:AddressingMode>(&mut self, am: AM) {
     match am.load(self) {
-      Data::Byte(byte) => {
-        let result = (W(self.sp as u32) + W(byte as u32)).0;
+      Data::SignedByte(byte) => {
+        let result = (W(self.sp as i32) + W(byte as i32)).0 as u32;
         self.flags.z = false;
         self.flags.n = false;
         self.flags.h = (W(self.sp & 0x0fff) + W(byte as u16)).0 > 0x0fff;
