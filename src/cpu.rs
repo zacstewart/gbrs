@@ -644,20 +644,14 @@ impl CPU {
 
   fn ld_bc<AM:AddressingMode>(&mut self, am: AM) {
     match am.load(self) {
-      Data::Word(word) => {
-        self.b = get_upper_bytes(word);
-        self.c = get_lower_bytes(word);
-      },
+      Data::Word(word) => self.set_bc(word),
       _ => panic!("Unexpected addressing mode")
     }
   }
 
   fn ld_de<AM:AddressingMode>(&mut self, am: AM) {
     match am.load(self) {
-      Data::Word(word) => {
-        self.e = get_upper_bytes(word);
-        self.d = get_lower_bytes(word);
-      },
+      Data::Word(word) => self.set_de(word),
       _ => panic!("Unexpected addressing mode")
     }
   }
