@@ -12,7 +12,8 @@ pub struct MMU {
   pub gpu: GPU
   pub joypad: joypad::Joypad,
   pub timer: timer::Timer,
-  pub ie: u8
+  pub ie: u8,
+  pub interrupt_flag: u8
 }
 
 impl MMU {
@@ -24,7 +25,8 @@ impl MMU {
       gpu: GPU::new()
       joypad: joypad::Joypad::new(),
       timer: timer::Timer::new(),
-      ie: 0
+      ie: 0,
+      interrupt_flag: 0
     }
   }
 
@@ -68,7 +70,8 @@ impl ReadByte for MMU {
       0xff01...0xff02 => { println!("Serial: {:04x}", address); 0 }         // Serial data transfer
       0xff03          => { println!("Unknown: {:04x}", address); 0 }
       0xff04...0xff07 => { self.timer.read_byte(address) }                  // Timer and divider
-      0xff08...0xff0f => { println!("Reading I/O: {:2x}", address); 0}      // Memory-mapped I/O
+      0xff08...0xff0e => { println!("Reading I/O: {:2x}", address); 0}      // Memory-mapped I/O
+      0xff0f => { self.interrupt_flag }
       0xff10...0xff3f => { 0 } // Sound
       0xff40...0xff4b => { self.gpu.read_byte(address) }                    // GPU
       0xff4c...0xff7f => { 0 }                                              // Unusable
@@ -94,7 +97,8 @@ impl WriteByte for MMU {
       0xff01...0xff02 => { println!("Serial: {:04x} = {:02x}", address, value); }       // Serial data transfer
       0xff03          => { println!("Unknown: {:04x} = {:02x}", address, value);}
       0xff04...0xff07 => { self.timer.write_byte(address, value); }                     // Timer and divider
-      0xff08...0xff0f => { println!("Writing I/O: {:2x} = {:2x}", address, value); }    // Memory-mapped I/O
+      0xff08...0xff0e => { println!("Writing I/O: {:2x} = {:2x}", address, value); }    // Memory-mapped I/O
+      0xff0f => { self.interrupt_flag = value; }
       0xff10...0xff3f => { } // Sound
       0xff40...0xff4b => { self.gpu.write_byte(address, value) }                        // GPU
       0xff4c...0xff7f => { }                                                            // Unusable
