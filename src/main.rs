@@ -1,6 +1,5 @@
 #![allow(dead_code)]
 #![feature(convert)]
-extern crate sdl2;
 extern crate gbrs;
 
 use gbrs::cpu::CPU;
