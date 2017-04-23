@@ -1,5 +1,4 @@
 #![allow(dead_code)]
-#![feature(convert)]
 extern crate gbrs;
 
 use gbrs::cpu::CPU;
