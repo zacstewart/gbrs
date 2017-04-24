@@ -1,7 +1,8 @@
-use mmu::MMU;
 use std::num::Wrapping as W;
-use memory_map::{ReadByte, WriteByte};
+
 use data::Data;
+use memory_map::{ReadByte, WriteByte};
+use mmu::MMU;
 
 trait AddressingMode {
   fn load(&self, cpu: &mut CPU) -> Data;
