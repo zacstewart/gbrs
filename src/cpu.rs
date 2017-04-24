@@ -492,7 +492,7 @@ impl CPU {
 
     self.h = (hl >> 8) as u8;
     self.l = (hl & 0xff) as u8;
-    self.m = 3;
+    self.m = 8;
   }
 
   fn add_a<AM:AddressingMode>(&mut self, am: AM) {
