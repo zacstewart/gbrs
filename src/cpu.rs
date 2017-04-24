@@ -718,7 +718,7 @@ impl CPU {
       self.b = (W(self.b) + W(1)).0;
     }
     self.c = (W(self.c) + W(1)).0;
-    self.m = 1;
+    self.m = 8
   }
 
   fn inc_de(&mut self) {
@@ -726,7 +726,7 @@ impl CPU {
       self.d = (W(self.d) + W(1)).0;
     }
     self.e = (W(self.e) + W(1)).0;
-    self.m = 1;
+    self.m = 8
   }
 
   fn inc_hl(&mut self) {
@@ -734,12 +734,12 @@ impl CPU {
       self.h = (W(self.h) + W(1)).0;
     }
     self.l = (W(self.l) + W(1)).0;
-    self.m = 1;
+    self.m = 8
   }
 
   fn inc_sp(&mut self) {
     self.sp = (W(self.sp) + W(1)).0;
-    self.m = 1;
+    self.m = 8
   }
 
   // 8-bit INCs
