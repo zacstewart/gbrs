@@ -35,10 +35,10 @@ impl ReadByte for Joypad {
         let mut value = 0;
         if self.select_button_keys { value |= 0b0010_0000; }
         if self.select_directional_keys { value |= 0b0001_000; }
-        if (self.down || self.start) { value |= 0b0000_1000; }
-        if (self.up || self.select) { value |= 0b0000_0100; }
-        if (self.left || self.b) { value |= 0b0000_0010; }
-        if (self.right || self.b) { value |= 0b0000_0001; }
+        if self.down || self.start { value |= 0b0000_1000; }
+        if self.up || self.select { value |= 0b0000_0100; }
+        if self.left || self.b { value |= 0b0000_0010; }
+        if self.right || self.b { value |= 0b0000_0001; }
         !value
     }
 }

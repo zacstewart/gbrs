@@ -105,20 +105,21 @@ impl ReadByte for GPU {
             0xff40 => {
                 let mut value: u8 = 0;
                 if self.lcd_on { value |= 0b10000000; }
-                value |= ((self.bg_tile_select & 1) << 4);
-                value |= ((self.bg_map_select & 1) << 3);
-                value |= ((self.obj_size & 1) << 2);
+                //TODO bits 5,6
+                value |= (self.bg_tile_select & 1) << 4;
+                value |= (self.bg_map_select & 1) << 3;
+                value |= (self.obj_size & 1) << 2;
                 if self.obj_display_enable { value |= 0b00000010; }
                 if self.bg_display_enable { value |= 0b00000001; }
                 value
             }
             0xff41 => {
                 let mut value = 0;
-                value |= ((self.coincidence_interrupt & 1) << 6);
-                value |= ((self.oam_interrupt & 1) << 5);
-                value |= ((self.v_blank_interrupt & 1) << 4);
-                value |= ((self.h_blank_interrupt & 1) << 3);
-                if (self.current_line == self.lyc) { value |= 0b0000_0100; }
+                value |= (self.coincidence_interrupt & 1) << 6;
+                value |= (self.oam_interrupt & 1) << 5;
+                value |= (self.v_blank_interrupt & 1) << 4;
+                value |= (self.h_blank_interrupt & 1) << 3;
+                if self.current_line == self.lyc { value |= 0b0000_0100; }
                 value |= match self.line_mode {
                     LineMode::HBlank => 0,
                     LineMode::VBlank => 1,
