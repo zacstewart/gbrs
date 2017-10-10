@@ -16,7 +16,7 @@ impl Disassembler {
   }
 
   pub fn disassemble(&mut self, length: usize) {
-    for _ in (0..length) {
+    for _ in 0..length {
       self.step();
     }
   }
