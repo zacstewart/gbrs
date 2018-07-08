@@ -160,7 +160,8 @@ impl ReadByte for GPU {
 impl WriteByte for GPU {
     fn write_byte(&mut self, address: u16, value: u8) {
         match address {
-            0x8000...0x9fff => { self.vram[(address & 0x1fff) as usize] = value }
+            0x8000...0x97ff => { self.vram[(address & 0x1fff) as usize] = value }
+            0x9800...0x9fff => { self.vram[(address & 0x1fff) as usize] = value }
             0xfe00...0xfe9f => { self.oam[(address & 0xff) as usize] = value }
             0xff40 => {
                 self.lcd_on = (value & 0b10000000) == 0b10000000;
