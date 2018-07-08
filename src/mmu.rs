@@ -1,6 +1,6 @@
 use cartridge::Cartridge;
 use std::fmt;
-use gpu::GPU;
+use gpu;
 use memory_map::{ReadByte, WriteByte};
 use joypad;
 use timer;
@@ -9,7 +9,7 @@ pub struct MMU {
   pub cartridge: Cartridge,
   pub working_ram: [u8; 0x2000],
   pub hram: [u8; 127],
-  pub gpu: GPU
+  pub gpu: gpu::GPU,
   pub joypad: joypad::Joypad,
   pub timer: timer::Timer,
   pub ie: u8,
@@ -22,7 +22,7 @@ impl MMU {
       cartridge: Cartridge::new(Box::new([])),
       working_ram: [0; 0x2000],
       hram: [0; 127],
-      gpu: GPU::new()
+      gpu: gpu::GPU::new(),
       joypad: joypad::Joypad::new(),
       timer: timer::Timer::new(),
       ie: 0,
@@ -35,6 +35,7 @@ impl MMU {
   }
 
   pub fn step(&mut self, clock: u8) {
+      self.gpu.step(clock);
       self.timer.step(clock);
   }
 
