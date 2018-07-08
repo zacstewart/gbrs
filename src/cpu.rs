@@ -1,6 +1,7 @@
 use std::num::Wrapping as W;
 
 use data::Data;
+use debugger;
 use memory_map::{ReadByte, WriteByte};
 use mmu::MMU;
 

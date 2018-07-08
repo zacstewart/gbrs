@@ -341,3 +341,4 @@ mod joypad;
 mod timer;
 mod memory_map;
 mod data;
+mod debugger;
