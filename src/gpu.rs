@@ -251,7 +251,7 @@ impl WriteByte for GPU {
                     Shade::from_u8((value & 0b0000_1100) >> 2),
                     Shade::from_u8((value & 0b0011_0000) >> 4),
                     Shade::from_u8((value & 0b1100_0000) >> 6)
-                );
+                    );
             }
             0xff48 => {
                 self.obj_0_palette = (
@@ -259,7 +259,7 @@ impl WriteByte for GPU {
                     Shade::from_u8((value & 0b0000_1100) >> 2),
                     Shade::from_u8((value & 0b0011_0000) >> 4),
                     Shade::from_u8((value & 0b1100_0000) >> 6)
-                );
+                    );
             }
             0xff49 => {
                 self.obj_1_palette = (
@@ -267,7 +267,7 @@ impl WriteByte for GPU {
                     Shade::from_u8((value & 0b0000_1100) >> 2),
                     Shade::from_u8((value & 0b0011_0000) >> 4),
                     Shade::from_u8((value & 0b1100_0000) >> 6)
-                );
+                    );
             }
             0xff4a => { self.window_position_y = value; }
             0xff4b => { self.window_position_x = value; }
