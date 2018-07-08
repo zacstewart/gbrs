@@ -73,9 +73,7 @@ fn ld_bc_immediate_word() {
     let mut mmu: MMU = MMU::new();
     mmu.load_cartridge(cart);
     let mut cpu: CPU = CPU::new(mmu);
-    let mut i = 0;
     while !cpu.stopped {
-        i += 1;
         cpu.step();
     }
     assert_eq!(cpu.b, 0xca);
