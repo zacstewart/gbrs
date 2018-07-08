@@ -1,7 +1,11 @@
 use memory_map::{ReadByte, WriteByte};
 
 const BASE: u16 = 0xff40;
+pub const SCREEN_WIDTH: usize = 160;
+pub const SCREEN_HEIGHT: usize = 144;
+pub const OAM_SIZE: usize = SCREEN_WIDTH;
 
+#[derive(Debug)]
 enum LineMode {
     HBlank = 0,
     VBlank = 1,
@@ -9,6 +13,7 @@ enum LineMode {
     VRAMRead = 3
 }
 
+#[derive(Debug, Copy, Clone)]
 enum Shade {
     White,
     LightGray,
@@ -42,6 +47,7 @@ pub struct GPU {
     scroll_x: u8,
     current_line: u8,
     memory: [u8; 0xbf],
+    clock: u16,
     vram: [u8; 8192],
     pub oam: [u8; OAM_SIZE],
 
@@ -74,6 +80,7 @@ impl GPU {
             scroll_x: 0,
             current_line: 0,
             memory: [0; 0xbf],
+            clock: 0,
             vram: [0; 8192],
             oam: [0; 160],
             lcd_on: true,
@@ -94,6 +101,64 @@ impl GPU {
             obj_0_palette: (Shade::White, Shade::White, Shade::White, Shade::White),
             obj_1_palette: (Shade::White, Shade::White, Shade::White, Shade::White)
         }
+    }
+
+    pub fn step(&mut self, cycles: u8) {
+        self.clock = self.clock + (cycles as u16);
+
+        match self.line_mode {
+            LineMode::HBlank => {
+                if self.clock >= 51 {
+                    if self.current_line == 143 {
+                        self.line_mode = LineMode::VBlank;
+                        self.render_screen();
+                    } else {
+                        self.line_mode = LineMode::OAMRead;
+                    }
+                    self.current_line = self.current_line + 1;
+                    //self.current_scan += 640;
+                    self.clock = 0;
+                }
+            }
+            LineMode::VBlank => {
+                if self.clock >= 114 {
+                    self.clock = 0;
+                    self.current_line = self.current_line + 1;
+                    if self.current_line > 153 {
+                        self.current_line = 0;
+                        self.line_mode = LineMode::OAMRead
+                    }
+                }
+            }
+            LineMode::OAMRead => {
+                if self.clock >= 20 {
+                    self.clock = 0;
+                    self.line_mode = LineMode::VRAMRead;
+                }
+            }
+            LineMode::VRAMRead => {
+                if self.clock >= 43 {
+                    self.clock = 0;
+                    self.line_mode = LineMode::HBlank;
+                    self.render_scanline();
+                }
+            }
+        }
+    }
+
+    fn render_scanline(&mut self) {
+        if !self.lcd_on { return; }
+
+        if self.bg_display_enable {
+            println!("Render scanline background");
+        }
+
+        if self.obj_display_enable {
+            println!("Render scanline object");
+        }
+    }
+
+    fn render_screen(&mut self) {
     }
 }
 
@@ -130,7 +195,7 @@ impl ReadByte for GPU {
             }
             0xff42 => { self.scroll_y }
             0xff43 => { self.scroll_x }
-            0xff44 => { self.current_line }
+            0xff44 => { self.current_line } // LY
             0xff45 => { self.lyc }
             0xff47 => {
                 self.bg_palette.0.to_u8() |
