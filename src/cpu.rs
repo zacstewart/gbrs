@@ -260,13 +260,13 @@ impl CPU {
 
   fn address_hli(&mut self) -> MemoryAddressingMode {
     let address = ((self.h as u16) << 8) | self.l as u16;
-    self.inc_hl();
+    self.increment_hl();
     self.address(address)
   }
 
   fn address_hld(&mut self) -> MemoryAddressingMode {
     let address = ((self.h as u16) << 8) | self.l as u16;
-    self.dec_hl();
+    self.decrement_hl();
     self.address(address)
   }
 
@@ -381,6 +381,7 @@ impl CPU {
       Data::Byte(byte) => self.b = byte,
       _ => {}
     }
+    self.m += 4;
   }
 
   fn ld_c<AM:AddressingMode>(&mut self, am: AM) {
@@ -554,6 +555,7 @@ impl CPU {
       }
       _ => panic!("Unexpected addressing mode")
     }
+    self.m = 8;
   }
 
   fn sub<AM:AddressingMode>(&mut self, am: AM) {
@@ -620,16 +622,25 @@ impl CPU {
       },
       _ => panic!()
     }
+    self.m += 12;
   }
 
   fn dec<AM:AddressingMode>(&mut self, am: AM) {
     match am.load(self) {
       Data::Byte(byte) => {
+        if byte % 15 == 0 {
+            self.flags.h = true
+        }
         let byte = (W(byte) - W(1)).0;
         am.store(self, Data::Byte(byte));
+        if byte == 0 {
+          self.flags.z = true;
+        }
+        self.flags.n = true;
       },
       _ => panic!()
     }
+    self.m += 12;
   }
 
   // Ops
@@ -643,6 +654,7 @@ impl CPU {
       Data::Word(word) => self.set_bc(word),
       _ => panic!("Unexpected addressing mode")
     }
+    self.m += 12
   }
 
   fn ld_de<AM:AddressingMode>(&mut self, am: AM) {
@@ -650,6 +662,7 @@ impl CPU {
       Data::Word(word) => self.set_de(word),
       _ => panic!("Unexpected addressing mode")
     }
+    self.m += 12
   }
 
   fn ld_hl<AM:AddressingMode>(&mut self, am: AM) {
@@ -657,6 +670,7 @@ impl CPU {
       Data::Word(word) => self.set_hl(word),
       _ => panic!("Unexpected addressing mode")
     }
+    self.m += 12
   }
 
   fn ld_sp<AM:AddressingMode>(&mut self, am: AM) {
@@ -664,6 +678,7 @@ impl CPU {
       Data::Word(word) => self.sp = word,
       _ => {}
     }
+    self.m += 12
   }
 
   fn ld_hl_sp_plus_immediate_signed(&mut self) {
@@ -676,7 +691,8 @@ impl CPU {
   fn ldh_a<AM:AddressingMode>(&mut self, am: AM) {
     match am.load(self) {
       Data::Byte(b) => {
-        let mem = self.address(b as u16 + 0xff00);
+        let address = 0xff00 + b as u16;
+        let mem = self.address(address);
         match mem.load(self) {
           Data::Byte(val) => self.a = val,
           _ => panic!("Unexpected addressing mode")
@@ -684,11 +700,13 @@ impl CPU {
       }
       _ => panic!("Unexpected addressing mode")
     }
+    self.m  += 12
   }
 
   fn ld_mem_a<AM:AddressingMode>(&mut self, am: AM) {
     let data = Data::Byte(self.a);
     am.store(self, data);
+    self.m += 8;
   }
 
   fn ld_mem_hl<AM:AddressingMode>(&mut self, am: AM) {
@@ -711,6 +729,7 @@ impl CPU {
       }
       _ => {}
     }
+    self.m += 12
   }
 
   // 16-bit INCs
@@ -720,7 +739,7 @@ impl CPU {
       self.b = (W(self.b) + W(1)).0;
     }
     self.c = (W(self.c) + W(1)).0;
-    self.m = 8
+    self.m += 8
   }
 
   fn inc_de(&mut self) {
@@ -728,20 +747,24 @@ impl CPU {
       self.d = (W(self.d) + W(1)).0;
     }
     self.e = (W(self.e) + W(1)).0;
-    self.m = 8
+    self.m += 8
   }
 
   fn inc_hl(&mut self) {
+    self.increment_hl();
+    self.m += 8
+  }
+
+  fn increment_hl(&mut self) {
     if self.l == 255 {
       self.h = (W(self.h) + W(1)).0;
     }
     self.l = (W(self.l) + W(1)).0;
-    self.m = 8
   }
 
   fn inc_sp(&mut self) {
     self.sp = (W(self.sp) + W(1)).0;
-    self.m = 8
+    self.m += 8
   }
 
   // 8-bit INCs
@@ -753,6 +776,7 @@ impl CPU {
     } else {
       self.flags.z = false;
     }
+    self.m += 4;
   }
 
   fn inc_c(&mut self) {
@@ -762,6 +786,7 @@ impl CPU {
     } else {
       self.flags.z = false;
     }
+    self.m += 4;
   }
 
   fn inc_d(&mut self) {
@@ -771,6 +796,7 @@ impl CPU {
     } else {
       self.flags.z = false;
     }
+    self.m += 4;
   }
 
   fn inc_e(&mut self) {
@@ -780,6 +806,7 @@ impl CPU {
     } else {
       self.flags.z = false;
     }
+    self.m += 4;
   }
 
   fn inc_h(&mut self) {
@@ -789,6 +816,7 @@ impl CPU {
     } else {
       self.flags.z = false;
     }
+    self.m += 4;
   }
 
   fn inc_l(&mut self) {
@@ -798,6 +826,7 @@ impl CPU {
     } else {
       self.flags.z = false;
     }
+    self.m += 4;
   }
 
   fn inc_a(&mut self) {
@@ -807,6 +836,7 @@ impl CPU {
     } else {
       self.flags.z = false;
     }
+    self.m += 4;
   }
 
   // 16-bit DECs
@@ -816,7 +846,7 @@ impl CPU {
       self.b = (W(self.b) - W(1)).0
     }
     self.c = (W(self.c) - W(1)).0;
-    self.m = 8;
+    self.m += 8;
   }
 
   fn dec_de(&mut self) {
@@ -824,19 +854,24 @@ impl CPU {
       self.d = (W(self.d) - W(1)).0
     }
     self.e = (W(self.e) - W(1)).0;
-    self.m = 8;
+    self.m += 8;
   }
 
   fn dec_hl(&mut self) {
-    if self.l == 0 {
-      self.h = (W(self.h) - W(1)).0
-    }
-    self.l = (W(self.l) - W(1)).0;
-    self.m = 8;
+    self.decrement_hl();
+    self.m += 8;
   }
 
   fn dec_sp(&mut self) {
     self.sp = (W(self.sp) - W(1)).0;
+    self.m += 8;
+  }
+
+  fn decrement_hl(&mut self) {
+    if self.l == 0 {
+      self.h = (W(self.h) - W(1)).0
+    }
+    self.l = (W(self.l) - W(1)).0;
   }
 
   // 8-bit DECs
@@ -848,6 +883,7 @@ impl CPU {
     } else {
       self.flags.z = false;
     }
+    self.m += 4;
   }
 
   fn dec_c(&mut self) {
@@ -857,6 +893,7 @@ impl CPU {
     } else {
       self.flags.z = false;
     }
+    self.m += 4;
   }
 
   fn dec_d(&mut self) {
@@ -866,6 +903,7 @@ impl CPU {
     } else {
       self.flags.z = false;
     }
+    self.m += 4;
   }
 
   fn dec_e(&mut self) {
@@ -875,6 +913,7 @@ impl CPU {
     } else {
       self.flags.z = false;
     }
+    self.m += 4;
   }
 
   fn dec_h(&mut self) {
@@ -884,6 +923,7 @@ impl CPU {
     } else {
       self.flags.z = false;
     }
+    self.m += 4;
   }
 
   fn dec_l(&mut self) {
@@ -893,6 +933,7 @@ impl CPU {
     } else {
       self.flags.z = false;
     }
+    self.m += 4;
   }
 
   fn dec_a(&mut self) {
@@ -902,6 +943,7 @@ impl CPU {
     } else {
       self.flags.z = false;
     }
+    self.m += 4;
   }
 
   // Rotations
@@ -915,7 +957,7 @@ impl CPU {
     }
 
     self.a = (self.a << 1) | (self.a >> 7); // rotate a
-    self.m = 4;
+    self.m += 4;
   }
 
   fn rla(&mut self) {
@@ -933,7 +975,7 @@ impl CPU {
     }
 
     self.a = (self.a << 1) | old_f; // rotate a left, move f to end of a
-    self.m = 4;
+    self.m += 4;
   }
 
   fn rrca(&mut self) {
@@ -943,7 +985,7 @@ impl CPU {
       self.flags.c = false;
     }
     self.a = (self.a >> 1) | (self.a << 7);
-    self.m = 4;
+    self.m += 4;
   }
 
   fn rra(&mut self) {
@@ -960,6 +1002,7 @@ impl CPU {
     }
 
     self.a = (self.a >> 1) | old_f;
+    self.m += 4;
   }
 
   // Jumps
@@ -971,6 +1014,7 @@ impl CPU {
       },
       _ => panic!()
     }
+    self.m += 12;
   }
 
   fn jr_nz<AM:AddressingMode>(&mut self, am: AM) {
@@ -978,6 +1022,9 @@ impl CPU {
       Data::SignedByte(byte) => {
         if !self.flags.z {
           self.pc = (W(self.pc as i16) + W(byte as i16)).0 as u16;
+          self.m += 12
+        } else {
+          self.m += 8;
         }
       },
       _ => panic!("Unexpected addressing mode")
@@ -989,6 +1036,9 @@ impl CPU {
       Data::SignedByte(byte) => {
         if self.flags.z {
           self.pc = (W(self.pc as i16) + W(byte as i16)).0 as u16;
+          self.m += 12;
+        } else {
+          self.m += 8;
         }
       },
       _ => panic!("Unexpected addressing mode")
@@ -1000,6 +1050,9 @@ impl CPU {
       Data::SignedByte(byte) => {
         if !self.flags.c {
           self.pc = (W(self.pc as i16) + W(byte as i16)).0 as u16;
+          self.m += 12;
+        } else {
+          self.m += 8;
         }
       },
       _ => panic!("Unexpected addressing mode")
@@ -1011,6 +1064,9 @@ impl CPU {
       Data::SignedByte(byte) => {
         if self.flags.c {
           self.pc = (W(self.pc as i16) + W(byte as i16)).0 as u16;
+          self.m += 12;
+        } else {
+          self.m += 8;
         }
       },
       _ => panic!("Unexpected addressing mode")
@@ -1172,7 +1228,7 @@ impl CPU {
       },
       _ => {}
     }
-    self.m = 3;
+    self.m += 20;
   }
 
   fn add_hl_bc(&mut self) {
@@ -1198,10 +1254,12 @@ impl CPU {
   fn stop(&mut self) {
     self.stopped = true;
     self.pc = self.pc + 1;
+    self.m += 4
   }
 
   fn halt(&mut self) {
       // TODO: HALT
+      self.m += 4;
   }
 
   fn disable_interrupts(&mut self) {
@@ -1227,22 +1285,26 @@ impl CPU {
 
     self.flags.h = false;
     self.flags.z = self.a == 0;
+    self.m += 4;
   }
 
   fn cpl(&mut self) {
     self.a = !self.a;
+    self.m += 4;
   }
 
   fn scf(&mut self) {
     self.flags.n = false;
     self.flags.h = false;
     self.flags.c = true;
+    self.m += 4;
   }
 
   fn ccf(&mut self) {
     self.flags.n = false;
     self.flags.h = false;
     self.flags.c = !self.flags.c;
+    self.m += 4;
   }
 
   // Bit opcodes
@@ -1257,7 +1319,7 @@ impl CPU {
           }
           _ => panic!("Unexpected addressing mode")
       }
-      self.m = 8;
+      self.m += 8;
   }
 }
 
@@ -1266,4 +1328,58 @@ fn get_lower_bytes(word: u16) -> u8 {
 }
 fn get_upper_bytes(word: u16) -> u8 {
   ((word & 0xff00) >> 8) as u8
+}
+
+#[cfg(test)]
+mod tests {
+    use cartridge::Cartridge;
+    use mmu::MMU;
+    use super::CPU;
+
+    macro_rules! assert_cyles_equal {
+        ([$($program:expr),*], $cycles:expr) => {{
+            let cart = Cartridge::new(vec![$($program),*].into_boxed_slice());
+            let mut mmu: MMU = MMU::new();
+            mmu.load_cartridge(cart);
+            let mut cpu: CPU = CPU::new(mmu);
+            cpu.step();
+            assert_eq!(cpu.clock.m, $cycles);
+        }}
+    }
+
+    #[test]
+    fn instruction_timings() {
+        // 0x00 nop
+        assert_cyles_equal!([0x00], 4);
+
+        // 0x01 ld bc d16
+        assert_cyles_equal!([0x01, 0x00, 0x00], 12);
+
+        // 0x02 ld (bc) a
+        assert_cyles_equal!([0x02], 8);
+
+        // 0x03 inc bc
+        assert_cyles_equal!([0x03], 8);
+
+        // 0x10 stop
+        assert_cyles_equal!([0x10], 4);
+
+        // 0x12 ld (de) a
+        assert_cyles_equal!([0x12], 8);
+
+        // 0x13 inc de
+        assert_cyles_equal!([0x13], 8);
+
+        // 0x22 ld (hl+) a
+        assert_cyles_equal!([0x22], 8);
+
+        // 0x23 inc hl
+        assert_cyles_equal!([0x23], 8);
+
+        // 0x32 ld (hl-) a
+        assert_cyles_equal!([0x32], 8);
+
+        // 0x33 inc sp
+        assert_cyles_equal!([0x33], 8);
+    }
 }
