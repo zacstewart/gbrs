@@ -66,6 +66,24 @@ macro_rules! make_rom {
 }
 
 #[test]
+#[ignore]
+fn power_up_sequence() {
+    let mut rom = make_rom!(0x10);
+    let cart = Cartridge::new(rom);
+    let mut mmu: MMU = MMU::new();
+    mmu.load_cartridge(cart);
+    let mut cpu: CPU = CPU::new(mmu);
+    let mut i = 0;
+    while !cpu.stopped {
+        cpu.step();
+    }
+
+    assert_eq!(cpu.a, 0x01);
+    assert_eq!(cpu.b, 0xb0);
+    assert_eq!(cpu.sp, 0xfffe);
+}
+
+#[test]
 fn ld_bc_immediate_word() {
     let mut rom = make_rom!(0x01, 0xfe, 0xca, 0x10);
 
