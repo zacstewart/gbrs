@@ -68,11 +68,6 @@ macro_rules! make_rom {
 #[test]
 fn ld_bc_immediate_word() {
     let mut rom = make_rom!(0x01, 0xfe, 0xca, 0x10);
-    let mut checksum = 0u8;
-    for i in (0x0134..0x014c) {
-        checksum = (W(checksum) + W(rom[i])).0;
-    }
-    rom[0x014d] = checksum;
 
     let cart = Cartridge::new(rom);
     let mut mmu: MMU = MMU::new();
@@ -141,11 +136,6 @@ fn registers_8bit_wrap_around_upon_underflow() {
         0x3d,       // DEC A
         0x10        // STOP
     );
-    let mut checksum = 0u8;
-    for i in (0x0134..0x014c) {
-        checksum = (W(checksum) + W(rom[i])).0;
-    }
-    rom[0x014d] = checksum;
     let cart = Cartridge::new(rom);
     let mut mmu: MMU = MMU::new();
     mmu.load_cartridge(cart);
@@ -179,11 +169,6 @@ fn registers_16bit_wrap_around_upon_overflow() {
 
         0x10                // STOP
     );
-    let mut checksum = 0u8;
-    for i in (0x0134..0x014c) {
-        checksum = (W(checksum) + W(rom[i])).0;
-    }
-    rom[0x014d] = checksum;
     let cart = Cartridge::new(rom);
     let mut mmu: MMU = MMU::new();
     mmu.load_cartridge(cart);
@@ -217,11 +202,6 @@ fn registers_16bit_wrap_around_upon_underflow() {
 
         0x10                // STOP
     );
-    let mut checksum = 0u8;
-    for i in (0x0134..0x014c) {
-        checksum = (W(checksum) + W(rom[i])).0;
-    }
-    rom[0x014d] = checksum;
     let cart = Cartridge::new(rom);
     let mut mmu: MMU = MMU::new();
     mmu.load_cartridge(cart);
