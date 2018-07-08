@@ -101,6 +101,16 @@ impl WriteByte for MMU {
       0xff08...0xff0e => { println!("Writing I/O: {:2x} = {:2x}", address, value); }    // Memory-mapped I/O
       0xff0f => { self.interrupt_flag = value; }
       0xff10...0xff3f => { } // Sound
+      0xff46 => { // DMA
+        // I'd prefer this be in the GPU implementation
+        // but it's difficult (impossible?) to let the GPU have a
+        // ref to the MMU.
+        let start_address = (value as u16) << 8;
+        for i in 0..gpu::OAM_SIZE {
+            let value = self.read_byte(start_address + (i as u16));
+            self.gpu.oam[i] = value;
+        }
+      }
       0xff40...0xff4b => { self.gpu.write_byte(address, value) }                        // GPU
       0xff4c...0xff7f => { }                                                            // Unusable
       0xff80...0xfffe => { self.hram[(address & 0x7f) as usize] = value }               // Zero-page RAM (High RAM, HRAM)
