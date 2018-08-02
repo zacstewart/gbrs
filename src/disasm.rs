@@ -41,19 +41,19 @@ impl Disassembler {
     // Addressing modes
 
     fn immediate(&mut self) -> String {
-        (format!("{:x}", self.take_byte())).to_string()
+        (format!("{:02x}", self.take_byte())).to_string()
     }
 
     fn immediate_signed(&mut self) -> String {
-        (format!("{:x}", self.take_byte() as i8)).to_string()
+        (format!("{:02x}", self.take_byte() as i8)).to_string()
     }
 
     fn immediate_word(&mut self) -> String {
-        (format!("{:x}", self.take_word())).to_string()
+        (format!("{:04x}", self.take_word())).to_string()
     }
 
     fn immediate_word_address(&mut self) -> String {
-        (format!("({:x})", self.take_word())).to_string()
+        (format!("({:04x})", self.take_word())).to_string()
     }
 
     fn address_bc(&self) -> String {
@@ -237,7 +237,7 @@ impl Disassembler {
     }
 
     fn pop_af(&self) {
-        println!("PUSH AF");
+        println!("POP AF");
     }
 
     fn push_bc(&self) {
@@ -513,7 +513,7 @@ impl Disassembler {
     }
 
     fn rst(&self, address: u16) {
-        println!("RST {:x}H", address);
+        println!("RST {:02x}", address);
     }
 
     fn bit(&self, bit: u8, am: String) {
