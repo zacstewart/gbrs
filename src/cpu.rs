@@ -113,10 +113,10 @@ impl Clock {
 
 #[derive(Debug)]
 pub struct Flags {
-  z: bool,
-  n: bool,
-  h: bool,
-  c: bool
+  pub z: bool,
+  pub n: bool,
+  pub h: bool,
+  pub c: bool
 }
 
 impl Flags {
@@ -130,15 +130,10 @@ impl Flags {
   }
 }
 
-#[derive(Debug)]
-pub struct CPU {
-  mmu: MMU,
-  clock: Clock,
-
+#[derive(Debug,Clone,Copy)]
+pub struct Registers {
   pub pc: u16, // Program Counter
   pub sp: u16, // Stack pointer
-
-  // Registers
   pub a: u8,
   pub b: u8,
   pub c: u8,
@@ -146,11 +141,35 @@ pub struct CPU {
   pub e: u8,
   pub h: u8,
   pub l: u8,
+}
+
+impl Registers {
+  fn new() -> Registers {
+    Registers {
+      pc: 0,
+      sp: 0,
+      // Registers
+      a: 0,
+      b: 0,
+      c: 0,
+      d: 0,
+      e: 0,
+      h: 0,
+      l: 0,
+    }
+  }
+}
+
+#[derive(Debug)]
+pub struct CPU {
+  mmu: MMU,
+  clock: Clock,
+  pub registers: Registers,
 
   // Internal clock
   m: u8,
 
-  flags: Flags,
+  pub flags: Flags,
   interrups: bool,
 
   pub stopped: bool
@@ -163,15 +182,7 @@ impl CPU {
     CPU {
       mmu: mmu,
       clock: clock,
-      pc: 0,
-      sp: 0,
-      a: 0,
-      b: 0,
-      c: 0,
-      d: 0,
-      e: 0,
-      h: 0,
-      l: 0,
+      registers: Registers::new(),
       m: 0,
       flags: flags,
       interrups: true,
@@ -179,46 +190,60 @@ impl CPU {
     }
   }
 
-  pub fn step(&mut self) {
+  pub fn step(&mut self, debugger: &mut debugger::Debugger) {
+    self.m = 0;
+    debugger.set_pc(self.registers.pc);
+
+    // Automatically break if we enter invalid program address space
+    if self.registers.pc >= 0x7fff {
+      debugger.add_pc_break(self.registers.pc);
+    }
+
     let instruction = self.take_byte();
+
+    debugger.set_instruction(instruction);
+    debugger.debug(self);
+
     decode_op!(instruction, self);
+
     self.clock.m = (W(self.clock.m) + W(self.m as u16)).0;
     self.mmu.step(self.m);
-    if self.pc == 0x100 { self.mmu.leave_bios(); }
-    self.m = 0;
+    if self.registers.pc == 0x100 { self.mmu.leave_bios(); }
   }
 
   // Fetch from program
 
   fn take_byte(&mut self) -> u8 {
-    let immediate = self.mmu.read_byte(self.pc);
-    self.pc = (W(self.pc) + W(1)).0;
+    let immediate = self.mmu.read_byte(self.registers.pc);
+    self.registers.pc = (W(self.registers.pc) + W(1)).0;
+    self.m = (W(self.m) + W(4)).0;
     return immediate;
   }
 
   fn take_word(&mut self) -> u16 {
-    let immediate = self.mmu.read_word(self.pc);
-    self.pc = (W(self.pc) + W(2)).0;
+    let immediate = self.mmu.read_word(self.registers.pc);
+    self.registers.pc = (W(self.registers.pc) + W(2)).0;
+    self.m = (W(self.m) + W(8)).0;
     return immediate;
   }
 
   // Pop off stack
 
   fn pop_byte(&mut self) -> u8 {
-    let value = self.mmu.read_byte(self.sp);
-    self.sp = self.sp + 1;
+    let value = self.mmu.read_byte(self.registers.sp);
+    self.registers.sp = self.registers.sp + 1;
     return value;
   }
 
   fn pop_word(&mut self) -> u16 {
-    let value = self.mmu.read_word(self.sp);
-    let sp = (W(self.sp) + W(2)).0;
+    let value = self.mmu.read_word(self.registers.sp);
+    let sp = (W(self.registers.sp) + W(2)).0;
     return value;
   }
 
   fn push_word(&mut self, value: u16) {
-    self.mmu.write_word(self.sp, value);
-    self.sp = (W(self.sp) - W(2)).0;
+    self.mmu.write_word(self.registers.sp, value);
+    self.registers.sp = (W(self.registers.sp) - W(2)).0;
   }
 
   // Addressing
@@ -244,34 +269,34 @@ impl CPU {
   }
 
   fn address_bc(&mut self) -> MemoryAddressingMode {
-    let address = ((self.b as u16) << 8) + self.c as u16;
+    let address = ((self.registers.b as u16) << 8) + self.registers.c as u16;
     self.address(address)
   }
 
   fn address_de(&mut self) -> MemoryAddressingMode {
-    let address = ((self.d as u16) << 8) | self.e as u16;
+    let address = ((self.registers.d as u16) << 8) | self.registers.e as u16;
     self.address(address)
   }
 
   fn address_hl(&mut self) -> MemoryAddressingMode {
-    let address = ((self.h as u16) << 8) | self.l as u16;
+    let address = ((self.registers.h as u16) << 8) | self.registers.l as u16;
     self.address(address)
   }
 
   fn address_hli(&mut self) -> MemoryAddressingMode {
-    let address = ((self.h as u16) << 8) | self.l as u16;
+    let address = ((self.registers.h as u16) << 8) | self.registers.l as u16;
     self.increment_hl();
     self.address(address)
   }
 
   fn address_hld(&mut self) -> MemoryAddressingMode {
-    let address = ((self.h as u16) << 8) | self.l as u16;
+    let address = ((self.registers.h as u16) << 8) | self.registers.l as u16;
     self.decrement_hl();
     self.address(address)
   }
 
   fn address_c(&mut self) -> MemoryAddressingMode {
-    let address = 0xff00 + self.c as u16;
+    let address = 0xff00 + self.registers.c as u16;
     self.address(address)
   }
 
@@ -280,64 +305,64 @@ impl CPU {
   }
 
   fn register_b(&self) -> RegisterAdressingMode {
-    let val = self.b;
+    let val = self.registers.b;
     self.register(val)
   }
 
   fn register_c(&self) -> RegisterAdressingMode {
-    let val = self.c;
+    let val = self.registers.c;
     self.register(val)
   }
 
   fn register_d(&self) -> RegisterAdressingMode {
-    let val = self.d;
+    let val = self.registers.d;
     self.register(val)
   }
 
   fn register_e(&self) -> RegisterAdressingMode {
-    let val = self.e;
+    let val = self.registers.e;
     self.register(val)
   }
 
   fn register_h(&self) -> RegisterAdressingMode {
-    let val = self.h;
+    let val = self.registers.h;
     self.register(val)
   }
 
   fn register_l(&self) -> RegisterAdressingMode {
-    let val = self.l;
+    let val = self.registers.l;
     self.register(val)
   }
 
   fn register_a(&self) -> RegisterAdressingMode {
-    let val = self.a;
+    let val = self.registers.a;
     self.register(val)
   }
 
   fn register_hl(&self) -> SixteenBitRegisterAdressingMode {
-    let hl = ((self.h as u16) << 8) + self.l as u16;
+    let hl = ((self.registers.h as u16) << 8) + self.registers.l as u16;
     SixteenBitRegisterAdressingMode { value: hl }
   }
 
   // 16-bit register sets
 
   fn set_bc(&mut self, value: u16) {
-    self.b = get_upper_bytes(value);
-    self.c = get_lower_bytes(value);
+    self.registers.b = get_upper_bytes(value);
+    self.registers.c = get_lower_bytes(value);
   }
 
   fn set_de(&mut self, value: u16) {
-    self.d = get_upper_bytes(value);
-    self.e = get_lower_bytes(value);
+    self.registers.d = get_upper_bytes(value);
+    self.registers.e = get_lower_bytes(value);
   }
 
   fn set_hl(&mut self, value: u16) {
-    self.h = get_upper_bytes(value);
-    self.l = get_lower_bytes(value);
+    self.registers.h = get_upper_bytes(value);
+    self.registers.l = get_lower_bytes(value);
   }
 
   fn set_af(&mut self, value: u16) {
-    self.a = get_upper_bytes(value);
+    self.registers.a = get_upper_bytes(value);
     let lower = get_lower_bytes(value);
     self.flags.z = (lower & 0x80) != 0;
     self.flags.n = (lower & 0x40) != 0;
@@ -348,25 +373,25 @@ impl CPU {
   // 16-bit register gets
 
   fn get_bc(&self) -> u16 {
-    let upper = (self.b as u16) << 8;
-    let lower = self.c as u16;
+    let upper = (self.registers.b as u16) << 8;
+    let lower = self.registers.c as u16;
     return upper | lower;
   }
 
   fn get_de(&self) -> u16 {
-    let upper = (self.d as u16) << 8;
-    let lower = self.e as u16;
+    let upper = (self.registers.d as u16) << 8;
+    let lower = self.registers.e as u16;
     return upper | lower;
   }
 
   fn get_hl(&self) -> u16 {
-    let upper = (self.h as u16) << 8;
-    let lower = self.l as u16;
+    let upper = (self.registers.h as u16) << 8;
+    let lower = self.registers.l as u16;
     return upper | lower;
   }
 
   fn get_af(&self) -> u16 {
-    let upper = (self.a as u16) << 8;
+    let upper = (self.registers.a as u16) << 8;
     let mut lower = 0u16;
     if self.flags.z { lower |= 0x80; }
     if self.flags.n { lower |= 0x40; }
@@ -378,51 +403,50 @@ impl CPU {
 
   fn ld_b<AM:AddressingMode>(&mut self, am: AM) {
     match am.load(self) {
-      Data::Byte(byte) => self.b = byte,
+      Data::Byte(byte) => self.registers.b = byte,
       _ => {}
     }
-    self.m += 4;
   }
 
   fn ld_c<AM:AddressingMode>(&mut self, am: AM) {
     match am.load(self) {
-      Data::Byte(byte) => self.c = byte,
+      Data::Byte(byte) => self.registers.c = byte,
       _ => {}
     }
   }
 
   fn ld_d<AM:AddressingMode>(&mut self, am: AM) {
     match am.load(self) {
-      Data::Byte(byte) => self.d = byte,
+      Data::Byte(byte) => self.registers.d = byte,
       _ => {}
     }
   }
 
   fn ld_e<AM:AddressingMode>(&mut self, am: AM) {
     match am.load(self) {
-      Data::Byte(byte) => self.e = byte,
+      Data::Byte(byte) => self.registers.e = byte,
       _ => {}
     }
   }
 
   fn ld_h<AM:AddressingMode>(&mut self, am: AM) {
     match am.load(self) {
-      Data::Byte(byte) => self.h = byte,
+      Data::Byte(byte) => self.registers.h = byte,
       _ => {}
     }
   }
 
   fn ld_l<AM:AddressingMode>(&mut self, am: AM) {
     match am.load(self) {
-      Data::Byte(byte) => self.l = byte,
+      Data::Byte(byte) => self.registers.l = byte,
       _ => {}
     }
   }
 
   fn ld_a<AM:AddressingMode>(&mut self, am: AM) {
-    match am.load(self) {
-      Data::Byte(byte) => self.a = byte,
-      _ => {}
+    if let Data::Byte(byte) = am.load(self) {
+      self.registers.a = byte;
+      self.m += 4;
     }
   }
 
@@ -469,19 +493,19 @@ impl CPU {
   // Stores
 
   fn st_a<AM:AddressingMode>(&mut self, am: AM) {
-    let a = Data::Byte(self.a);
+    let a = Data::Byte(self.registers.a);
     am.store(self, a);
   }
 
   fn st_sp<AM:AddressingMode>(&mut self, am: AM) {
-    let value = Data::Word(self.sp);
+    let value = Data::Word(self.registers.sp);
     am.store(self, value);
   }
 
   // Arithmetic
 
   fn add_hl(&mut self, value: u16) {
-    let mut hl = ((self.h as u16) << 8) + self.l as u16;
+    let mut hl = ((self.registers.h as u16) << 8) + self.registers.l as u16;
 
     if (W(hl) + W(value)).0 < hl {
       self.flags.c = true;
@@ -493,21 +517,21 @@ impl CPU {
 
     hl = (W(hl) + W(value)).0;
 
-    self.h = (hl >> 8) as u8;
-    self.l = (hl & 0xff) as u8;
+    self.registers.h = (hl >> 8) as u8;
+    self.registers.l = (hl & 0xff) as u8;
     self.m = 8;
   }
 
   fn add_a<AM:AddressingMode>(&mut self, am: AM) {
     match am.load(self) {
       Data::Byte(byte) => {
-        let result = (W(self.a as u16) + W(byte as u16)).0;
+        let result = (W(self.registers.a as u16) + W(byte as u16)).0;
 
         self.flags.z = (result & 0xff) == 0;
         self.flags.n = false;
-        self.flags.h = ((W(self.a & 0x0f) + W(byte & 0x0f)).0 & 0x10) == 0x10;
+        self.flags.h = ((W(self.registers.a & 0x0f) + W(byte & 0x0f)).0 & 0x10) == 0x10;
         self.flags.c = result > 0xff;
-        self.a = (result & 0xff) as u8
+        self.registers.a = (result & 0xff) as u8
       },
       _ => panic!("Unexpected addressing mode")
     }
@@ -516,12 +540,12 @@ impl CPU {
   fn add_sp<AM:AddressingMode>(&mut self, am: AM) {
     match am.load(self) {
       Data::SignedByte(byte) => {
-        let result = (W(self.sp as i32) + W(byte as i32)).0 as u32;
+        let result = (W(self.registers.sp as i32) + W(byte as i32)).0 as u32;
         self.flags.z = false;
         self.flags.n = false;
-        self.flags.h = (W(self.sp & 0x0fff) + W(byte as u16)).0 > 0x0fff;
+        self.flags.h = (W(self.registers.sp & 0x0fff) + W(byte as u16)).0 > 0x0fff;
         self.flags.c = result > 0xffff;
-        self.sp = (result & 0xffff) as u16;
+        self.registers.sp = (result & 0xffff) as u16;
       }
       _ => panic!("Unexpected addressing mode")
     }
@@ -530,15 +554,15 @@ impl CPU {
   fn adc_a<AM:AddressingMode>(&mut self, am: AM) {
     match am.load(self) {
       Data::Byte(byte) => {
-        let mut result = self.a as u16 + byte as u16;
+        let mut result = self.registers.a as u16 + byte as u16;
         if self.flags.c {
           result = result + 1;
         }
         self.flags.z = (result & 0xff) == 0;
         self.flags.n = false;
-        self.flags.h = ((self.a & 0x0f) + (byte & 0x0f)) & 0x10 == 0x10;
+        self.flags.h = ((self.registers.a & 0x0f) + (byte & 0x0f)) & 0x10 == 0x10;
         self.flags.c = result > 0xff;
-        self.a = (result & 0xff) as u8
+        self.registers.a = (result & 0xff) as u8
       },
       _ => panic!("Unexpected addressing mode")
     }
@@ -547,11 +571,11 @@ impl CPU {
   fn cp<AM:AddressingMode>(&mut self, am: AM) -> u8 {
     match am.load(self) {
       Data::Byte(byte) => {
-        self.flags.z = self.a == byte;
+        self.flags.z = self.registers.a == byte;
         self.flags.n = true;
-        self.flags.h = (self.a & 0xf) < (byte & 0xf);
-        self.flags.c = self.a < byte;
-        return (W(self.a) - W(byte)).0;
+        self.flags.h = (self.registers.a & 0xf) < (byte & 0xf);
+        self.flags.c = self.registers.a < byte;
+        return (W(self.registers.a) - W(byte)).0;
       }
       _ => panic!("Unexpected addressing mode")
     }
@@ -559,17 +583,17 @@ impl CPU {
   }
 
   fn sub<AM:AddressingMode>(&mut self, am: AM) {
-    self.a = self.cp(am);
+    self.registers.a = self.cp(am);
   }
 
   fn sbc_a<AM:AddressingMode>(&mut self, am: AM) {
     match am.load(self) {
       Data::Byte(byte) => {
         let byte = byte - 1;
-        self.flags.z = self.a == byte;
+        self.flags.z = self.registers.a == byte;
         self.flags.n = true;
-        self.flags.h = (self.a & 0xf) < (byte & 0xf);
-        self.flags.c = self.a < byte;
+        self.flags.h = (self.registers.a & 0xf) < (byte & 0xf);
+        self.flags.c = self.registers.a < byte;
       }
       _ => panic!("Unexpected addressing mode")
     }
@@ -578,8 +602,8 @@ impl CPU {
   fn and<AM:AddressingMode>(&mut self, am: AM) {
     match am.load(self) {
       Data::Byte(byte) => {
-        self.a &= byte;
-        self.flags.z = self.a == 0;
+        self.registers.a &= byte;
+        self.flags.z = self.registers.a == 0;
         self.flags.n = false;
         self.flags.h = true;
         self.flags.c = false;
@@ -591,8 +615,8 @@ impl CPU {
   fn xor<AM:AddressingMode>(&mut self, am: AM) {
     match am.load(self) {
       Data::Byte(byte) => {
-        self.a ^= byte;
-        self.flags.z = self.a == 0;
+        self.registers.a ^= byte;
+        self.flags.z = self.registers.a == 0;
         self.flags.n = false;
         self.flags.h = false;
         self.flags.c = false;
@@ -604,8 +628,8 @@ impl CPU {
   fn or<AM:AddressingMode>(&mut self, am: AM) {
     match am.load(self) {
       Data::Byte(byte) => {
-        self.a |= byte;
-        self.flags.z = self.a == 0;
+        self.registers.a |= byte;
+        self.flags.z = self.registers.a == 0;
         self.flags.n = false;
         self.flags.h = false;
         self.flags.c = false;
@@ -654,7 +678,6 @@ impl CPU {
       Data::Word(word) => self.set_bc(word),
       _ => panic!("Unexpected addressing mode")
     }
-    self.m += 12
   }
 
   fn ld_de<AM:AddressingMode>(&mut self, am: AM) {
@@ -662,7 +685,6 @@ impl CPU {
       Data::Word(word) => self.set_de(word),
       _ => panic!("Unexpected addressing mode")
     }
-    self.m += 12
   }
 
   fn ld_hl<AM:AddressingMode>(&mut self, am: AM) {
@@ -675,14 +697,14 @@ impl CPU {
 
   fn ld_sp<AM:AddressingMode>(&mut self, am: AM) {
     match am.load(self) {
-      Data::Word(word) => self.sp = word,
+      Data::Word(word) => self.registers.sp = word,
       _ => {}
     }
     self.m += 12
   }
 
   fn ld_hl_sp_plus_immediate_signed(&mut self) {
-    let  sp = self.sp as i16;
+    let  sp = self.registers.sp as i16;
     let immediate = self.take_byte() as i16;
 
     self.set_hl((W(sp) + W(immediate)).0 as u16);
@@ -694,7 +716,7 @@ impl CPU {
         let address = 0xff00 + b as u16;
         let mem = self.address(address);
         match mem.load(self) {
-          Data::Byte(val) => self.a = val,
+          Data::Byte(val) => self.registers.a = val,
           _ => panic!("Unexpected addressing mode")
         }
       }
@@ -704,13 +726,13 @@ impl CPU {
   }
 
   fn ld_mem_a<AM:AddressingMode>(&mut self, am: AM) {
-    let data = Data::Byte(self.a);
+    let data = Data::Byte(self.registers.a);
     am.store(self, data);
-    self.m += 8;
+    self.m += 4;
   }
 
   fn ld_mem_hl<AM:AddressingMode>(&mut self, am: AM) {
-    let hl = ((self.h as u16) << 8) + self.l as u16;
+    let hl = ((self.registers.h as u16) << 8) + self.registers.l as u16;
     let data = Data::Word(hl);
     am.store(self, data);
   }
@@ -735,229 +757,214 @@ impl CPU {
   // 16-bit INCs
 
   fn inc_bc(&mut self) {
-    if self.c == 255 {
-      self.b = (W(self.b) + W(1)).0;
+    if self.registers.c == 255 {
+      self.registers.b = (W(self.registers.b) + W(1)).0;
     }
-    self.c = (W(self.c) + W(1)).0;
-    self.m += 8
+    self.registers.c = (W(self.registers.c) + W(1)).0;
+    self.m += 4;
   }
 
   fn inc_de(&mut self) {
-    if self.e == 255 {
-      self.d = (W(self.d) + W(1)).0;
+    if self.registers.e == 255 {
+      self.registers.d = (W(self.registers.d) + W(1)).0;
     }
-    self.e = (W(self.e) + W(1)).0;
-    self.m += 8
+    self.registers.e = (W(self.registers.e) + W(1)).0;
+    self.m += 4;
   }
 
   fn inc_hl(&mut self) {
     self.increment_hl();
-    self.m += 8
-  }
-
-  fn increment_hl(&mut self) {
-    if self.l == 255 {
-      self.h = (W(self.h) + W(1)).0;
-    }
-    self.l = (W(self.l) + W(1)).0;
+    self.m += 4;
   }
 
   fn inc_sp(&mut self) {
-    self.sp = (W(self.sp) + W(1)).0;
-    self.m += 8
+    self.registers.sp = (W(self.registers.sp) + W(1)).0;
+    self.m += 4;
+  }
+
+  fn increment_hl(&mut self) {
+    if self.registers.l == 255 {
+      self.registers.h = (W(self.registers.h) + W(1)).0;
+    }
+    self.registers.l = (W(self.registers.l) + W(1)).0;
   }
 
   // 8-bit INCs
 
   fn inc_b(&mut self) {
-    self.b = (W(self.b) + W(1)).0;
-    if self.b == 0 {
+    self.registers.b = (W(self.registers.b) + W(1)).0;
+    if self.registers.b == 0 {
       self.flags.z = true;
     } else {
       self.flags.z = false;
     }
-    self.m += 4;
   }
 
   fn inc_c(&mut self) {
-    self.c = (W(self.c) + W(1)).0;
-    if self.c == 0 {
+    self.registers.c = (W(self.registers.c) + W(1)).0;
+    if self.registers.c == 0 {
       self.flags.z = true;
     } else {
       self.flags.z = false;
     }
-    self.m += 4;
   }
 
   fn inc_d(&mut self) {
-    self.d = (W(self.d) + W(1)).0;
-    if self.d == 0 {
+    self.registers.d = (W(self.registers.d) + W(1)).0;
+    if self.registers.d == 0 {
       self.flags.z = true;
     } else {
       self.flags.z = false;
     }
-    self.m += 4;
   }
 
   fn inc_e(&mut self) {
-    self.e = (W(self.e) + W(1)).0;
-    if self.e == 0 {
+    self.registers.e = (W(self.registers.e) + W(1)).0;
+    if self.registers.e == 0 {
       self.flags.z = true;
     } else {
       self.flags.z = false;
     }
-    self.m += 4;
   }
 
   fn inc_h(&mut self) {
-    self.h = (W(self.h) + W(1)).0;
-    if self.h == 0 {
+    self.registers.h = (W(self.registers.h) + W(1)).0;
+    if self.registers.h == 0 {
       self.flags.z = true;
     } else {
       self.flags.z = false;
     }
-    self.m += 4;
   }
 
   fn inc_l(&mut self) {
-    self.l = (W(self.l) + W(1)).0;
-    if self.l == 0 {
+    self.registers.l = (W(self.registers.l) + W(1)).0;
+    if self.registers.l == 0 {
       self.flags.z = true;
     } else {
       self.flags.z = false;
     }
-    self.m += 4;
   }
 
   fn inc_a(&mut self) {
-    self.a = (W(self.a) + W(1)).0;
-    if self.a == 0 {
+    self.registers.a = (W(self.registers.a) + W(1)).0;
+    if self.registers.a == 0 {
       self.flags.z = true;
     } else {
       self.flags.z = false;
     }
-    self.m += 4;
   }
 
   // 16-bit DECs
 
   fn dec_bc(&mut self) {
-    if self.c == 0 {
-      self.b = (W(self.b) - W(1)).0
+    if self.registers.c == 0 {
+      self.registers.b = (W(self.registers.b) - W(1)).0
     }
-    self.c = (W(self.c) - W(1)).0;
-    self.m += 8;
+    self.registers.c = (W(self.registers.c) - W(1)).0;
+    self.m += 4;
   }
 
   fn dec_de(&mut self) {
-    if self.e == 0 {
-      self.d = (W(self.d) - W(1)).0
+    if self.registers.e == 0 {
+      self.registers.d = (W(self.registers.d) - W(1)).0
     }
-    self.e = (W(self.e) - W(1)).0;
-    self.m += 8;
+    self.registers.e = (W(self.registers.e) - W(1)).0;
+    self.m += 4;
   }
 
   fn dec_hl(&mut self) {
     self.decrement_hl();
-    self.m += 8;
+    self.m += 4;
   }
 
   fn dec_sp(&mut self) {
-    self.sp = (W(self.sp) - W(1)).0;
-    self.m += 8;
+    self.registers.sp = (W(self.registers.sp) - W(1)).0;
+    self.m += 4;
   }
 
   fn decrement_hl(&mut self) {
-    if self.l == 0 {
-      self.h = (W(self.h) - W(1)).0
+    if self.registers.l == 0 {
+      self.registers.h = (W(self.registers.h) - W(1)).0
     }
-    self.l = (W(self.l) - W(1)).0;
+    self.registers.l = (W(self.registers.l) - W(1)).0;
   }
 
   // 8-bit DECs
 
   fn dec_b(&mut self) {
-    self.b = (W(self.b) - W(1)).0;
-    if self.b == 0 {
+    self.registers.b = (W(self.registers.b) - W(1)).0;
+    if self.registers.b == 0 {
       self.flags.z = true;
     } else {
       self.flags.z = false;
     }
-    self.m += 4;
   }
 
   fn dec_c(&mut self) {
-    self.c = (W(self.c) - W(1)).0;
-    if self.c == 0 {
+    self.registers.c = (W(self.registers.c) - W(1)).0;
+    if self.registers.c == 0 {
       self.flags.z = true;
     } else {
       self.flags.z = false;
     }
-    self.m += 4;
   }
 
   fn dec_d(&mut self) {
-    self.d = (W(self.d) - W(1)).0;
-    if self.d  == 0 {
+    self.registers.d = (W(self.registers.d) - W(1)).0;
+    if self.registers.d  == 0 {
       self.flags.z = true;
     } else {
       self.flags.z = false;
     }
-    self.m += 4;
   }
 
   fn dec_e(&mut self) {
-    self.e = (W(self.e) - W(1)).0;
-    if self.e  == 0 {
+    self.registers.e = (W(self.registers.e) - W(1)).0;
+    if self.registers.e  == 0 {
       self.flags.z = true;
     } else {
       self.flags.z = false;
     }
-    self.m += 4;
   }
 
   fn dec_h(&mut self) {
-    self.h = (W(self.h) - W(1)).0;
-    if self.h  == 0 {
+    self.registers.h = (W(self.registers.h) - W(1)).0;
+    if self.registers.h  == 0 {
       self.flags.z = true;
     } else {
       self.flags.z = false;
     }
-    self.m += 4;
   }
 
   fn dec_l(&mut self) {
-    self.l = (W(self.l) - W(1)).0;
-    if self.l  == 0 {
+    self.registers.l = (W(self.registers.l) - W(1)).0;
+    if self.registers.l  == 0 {
       self.flags.z = true;
     } else {
       self.flags.z = false;
     }
-    self.m += 4;
   }
 
   fn dec_a(&mut self) {
-    self.a = (W(self.a) - W(1)).0;
-    if self.a  == 0 {
+    self.registers.a = (W(self.registers.a) - W(1)).0;
+    if self.registers.a  == 0 {
       self.flags.z = true;
     } else {
       self.flags.z = false;
     }
-    self.m += 4;
   }
 
   // Rotations
 
   fn rlca(&mut self) {
     // put bit 7 of a in carry flag
-    if (self.a & 0x80) == 0x80 {
+    if (self.registers.a & 0x80) == 0x80 {
       self.flags.c = true
     } else {
       self.flags.c = false
     }
 
-    self.a = (self.a << 1) | (self.a >> 7); // rotate a
-    self.m += 4;
+    self.registers.a = (self.registers.a << 1) | (self.registers.a >> 7); // rotate a
   }
 
   fn rla(&mut self) {
@@ -968,24 +975,22 @@ impl CPU {
       old_f = 0;
     }
 
-    if (self.a & 0x80) == 0x80 {
+    if (self.registers.a & 0x80) == 0x80 {
       self.flags.c = true;
     } else {
       self.flags.c = false;
     }
 
-    self.a = (self.a << 1) | old_f; // rotate a left, move f to end of a
-    self.m += 4;
+    self.registers.a = (self.registers.a << 1) | old_f; // rotate a left, move f to end of a
   }
 
   fn rrca(&mut self) {
-    if (self.a & 1) == 1 {
+    if (self.registers.a & 1) == 1 {
       self.flags.c = true;
     } else {
       self.flags.c = false;
     }
-    self.a = (self.a >> 1) | (self.a << 7);
-    self.m += 4;
+    self.registers.a = (self.registers.a >> 1) | (self.registers.a << 7);
   }
 
   fn rra(&mut self) {
@@ -995,14 +1000,13 @@ impl CPU {
     } else {
       old_f = 0;
     }
-    if (self.a & 1) == 1 {
+    if (self.registers.a & 1) == 1 {
       self.flags.c = true;
     } else {
       self.flags.c = false;
     }
 
-    self.a = (self.a >> 1) | old_f;
-    self.m += 4;
+    self.registers.a = (self.registers.a >> 1) | old_f;
   }
 
   // Jumps
@@ -1010,18 +1014,18 @@ impl CPU {
   fn jr<AM:AddressingMode>(&mut self, am: AM) {
     match am.load(self) {
       Data::SignedByte(byte) => {
-        self.pc = (W(self.pc as i16) + W(byte as i16)).0 as u16;
+        self.registers.pc = (W(self.registers.pc as i16) + W(byte as i16)).0 as u16;
       },
       _ => panic!()
     }
-    self.m += 12;
+    self.m += 4;
   }
 
   fn jr_nz<AM:AddressingMode>(&mut self, am: AM) {
     match am.load(self) {
       Data::SignedByte(byte) => {
         if !self.flags.z {
-          self.pc = (W(self.pc as i16) + W(byte as i16)).0 as u16;
+          self.registers.pc = (W(self.registers.pc as i16) + W(byte as i16)).0 as u16;
           self.m += 12
         } else {
           self.m += 8;
@@ -1035,7 +1039,7 @@ impl CPU {
     match am.load(self) {
       Data::SignedByte(byte) => {
         if self.flags.z {
-          self.pc = (W(self.pc as i16) + W(byte as i16)).0 as u16;
+          self.registers.pc = (W(self.registers.pc as i16) + W(byte as i16)).0 as u16;
           self.m += 12;
         } else {
           self.m += 8;
@@ -1049,7 +1053,7 @@ impl CPU {
     match am.load(self) {
       Data::SignedByte(byte) => {
         if !self.flags.c {
-          self.pc = (W(self.pc as i16) + W(byte as i16)).0 as u16;
+          self.registers.pc = (W(self.registers.pc as i16) + W(byte as i16)).0 as u16;
           self.m += 12;
         } else {
           self.m += 8;
@@ -1063,7 +1067,7 @@ impl CPU {
     match am.load(self) {
       Data::SignedByte(byte) => {
         if self.flags.c {
-          self.pc = (W(self.pc as i16) + W(byte as i16)).0 as u16;
+          self.registers.pc = (W(self.registers.pc as i16) + W(byte as i16)).0 as u16;
           self.m += 12;
         } else {
           self.m += 8;
@@ -1077,7 +1081,7 @@ impl CPU {
     match am.load(self) {
       Data::Word(word) => {
         if !self.flags.z {
-          self.pc = word;
+          self.registers.pc = word;
         }
       },
       _ => panic!("Unexpected addressing mode")
@@ -1088,7 +1092,7 @@ impl CPU {
     match am.load(self) {
       Data::Word(word) => {
         if self.flags.z {
-          self.pc = word;
+          self.registers.pc = word;
         }
       },
       _ => panic!("Unexpected addressing mode")
@@ -1099,7 +1103,7 @@ impl CPU {
     match am.load(self) {
       Data::Word(word) => {
         if !self.flags.c {
-          self.pc = word;
+          self.registers.pc = word;
         }
       },
       _ => panic!("Unexpected addressing mode")
@@ -1110,7 +1114,7 @@ impl CPU {
     match am.load(self) {
       Data::Word(word) => {
         if self.flags.c {
-          self.pc = word;
+          self.registers.pc = word;
         }
       },
       _ => panic!("Unexpected addressing mode")
@@ -1120,7 +1124,7 @@ impl CPU {
   fn jp<AM:AddressingMode>(&mut self, am: AM) {
     match am.load(self) {
       Data::Word(word) => {
-        self.pc = word;
+        self.registers.pc = word;
       }
       _ => panic!("Unexpected addressing mode")
     }
@@ -1128,34 +1132,34 @@ impl CPU {
 
   fn ret_nz(&mut self) {
     if !self.flags.z {
-      self.pc = self.pop_word();
+      self.registers.pc = self.pop_word();
     }
   }
 
   fn ret_z(&mut self) {
     if self.flags.z {
-      self.pc = self.pop_word();
+      self.registers.pc = self.pop_word();
     }
   }
 
   fn ret_nc(&mut self) {
     if !self.flags.c {
-      self.pc = self.pop_word();
+      self.registers.pc = self.pop_word();
     }
   }
 
   fn ret_c(&mut self) {
     if self.flags.c {
-      self.pc = self.pop_word();
+      self.registers.pc = self.pop_word();
     }
   }
 
   fn ret(&mut self) {
-    self.pc = self.pop_word();
+    self.registers.pc = self.pop_word();
   }
 
   fn reti(&mut self) {
-    self.pc = self.pop_word();
+    self.registers.pc = self.pop_word();
     self.interrups = true
   }
 
@@ -1163,7 +1167,7 @@ impl CPU {
     if !self.flags.z {
       let val = self.take_word();
       self.push_word(val);
-      self.pc = match am.load(self) {
+      self.registers.pc = match am.load(self) {
         Data::Word(w) => w,
         _ => panic!("Unexpected addressing mode!")
       }
@@ -1174,7 +1178,7 @@ impl CPU {
     if self.flags.z {
       let val = self.take_word();
       self.push_word(val);
-      self.pc = match am.load(self) {
+      self.registers.pc = match am.load(self) {
         Data::Word(w) => w,
         _ => panic!("Unexpected addressing mode!")
       }
@@ -1185,7 +1189,7 @@ impl CPU {
     if !self.flags.c {
       let val = self.take_word();
       self.push_word(val);
-      self.pc = match am.load(self) {
+      self.registers.pc = match am.load(self) {
         Data::Word(w) => w,
         _ => panic!("Unexpected addressing mode!")
       }
@@ -1196,7 +1200,7 @@ impl CPU {
     if self.flags.c {
       let val = self.take_word();
       self.push_word(val);
-      self.pc = match am.load(self) {
+      self.registers.pc = match am.load(self) {
         Data::Word(w) => w,
         _ => panic!("Unexpected addressing mode!")
       }
@@ -1204,18 +1208,18 @@ impl CPU {
   }
 
   fn call<AM:AddressingMode>(&mut self, am: AM) {
-      let val = self.take_word();
-      self.push_word(val);
-    self.pc = match am.load(self) {
+    let pc = self.registers.pc;
+    self.push_word(pc);
+    self.registers.pc = match am.load(self) {
       Data::Word(w) => w,
       _ => panic!("Unexpected addressing mode!")
-    }
+    };
   }
 
   fn rst(&mut self, address: u16) {
-    let pc = self.pc;
+    let pc = self.registers.pc;
     self.push_word(pc);
-    self.pc = address;
+    self.registers.pc = address;
   }
 
   // Loads
@@ -1228,38 +1232,36 @@ impl CPU {
       },
       _ => {}
     }
-    self.m += 20;
+    self.m += 8;
   }
 
   fn add_hl_bc(&mut self) {
-    let bc = ((self.b as u16) << 8) + self.c as u16;
+    let bc = ((self.registers.b as u16) << 8) + self.registers.c as u16;
     self.add_hl(bc);
   }
 
   fn add_hl_de(&mut self) {
-    let de = ((self.d as u16) << 8) + self.e as u16;
+    let de = ((self.registers.d as u16) << 8) + self.registers.e as u16;
     self.add_hl(de);
   }
 
   fn add_hl_hl(&mut self) {
-    let hl = ((self.h as u16) << 8) + self.l as u16;
+    let hl = ((self.registers.h as u16) << 8) + self.registers.l as u16;
     self.add_hl(hl);
   }
 
   fn add_hl_sp(&mut self) {
-    let sp = self.sp;
+    let sp = self.registers.sp;
     self.add_hl(sp);
   }
 
   fn stop(&mut self) {
     self.stopped = true;
-    self.pc = self.pc + 1;
-    self.m += 4
+    self.registers.pc = self.registers.pc + 1;
   }
 
   fn halt(&mut self) {
       // TODO: HALT
-      self.m += 4;
   }
 
   fn disable_interrupts(&mut self) {
@@ -1274,22 +1276,22 @@ impl CPU {
 
   fn daa(&mut self) {
     self.flags.c = false;
-    if (self.a & 0x0f) > 9 {
-      self.a = self.a + 0x06;
+    if (self.registers.a & 0x0f) > 9 {
+      self.registers.a = self.registers.a + 0x06;
     }
 
-    if ((self.a & 0xf0) >> 4) > 9 {
+    if ((self.registers.a & 0xf0) >> 4) > 9 {
       self.flags.c = true;
-      self.a = self.a + 0x60;
+      self.registers.a = self.registers.a + 0x60;
     }
 
     self.flags.h = false;
-    self.flags.z = self.a == 0;
+    self.flags.z = self.registers.a == 0;
     self.m += 4;
   }
 
   fn cpl(&mut self) {
-    self.a = !self.a;
+    self.registers.a = !self.registers.a;
     self.m += 4;
   }
 
@@ -1349,37 +1351,46 @@ mod tests {
 
     #[test]
     fn instruction_timings() {
-        // 0x00 nop
-        assert_cyles_equal!([0x00], 4);
+        assert_cyles_equal!([0x00], 4);              // 0x00 nop
+        assert_cyles_equal!([0x01, 0x00, 0x00], 12); // 0x01 ld bc d16
+        assert_cyles_equal!([0x02], 8);              // 0x02 ld (bc) a
+        assert_cyles_equal!([0x03], 8);              // 0x03 inc bc
+        assert_cyles_equal!([0x04], 4);              // 0x04 inc b
+        assert_cyles_equal!([0x05], 4);              // 0x05 dec b
+        assert_cyles_equal!([0x06, 0x01], 8);        // 0x06 LD B,d8
+        assert_cyles_equal!([0x07], 4);              // 0x07 RLCA
+        assert_cyles_equal!([0x08, 0x01, 0x02], 20); // 0x08 LD (a16),SP
+        assert_cyles_equal!([0x09], 8);              // 0x09 ADD HL,BC
+        assert_cyles_equal!([0x0a], 8);              // 0x0a LD A,(BC)
+        assert_cyles_equal!([0x0b], 8);              // 0x0b DEC BC
+        assert_cyles_equal!([0x0c], 4);              // 0x0c INC C
+        assert_cyles_equal!([0x0d], 4);              // 0x0d DEC C
+        assert_cyles_equal!([0x0e], 8);              // 0x0e LD C,d8
+        assert_cyles_equal!([0x0f], 4);              // 0x0f RRCA
 
-        // 0x01 ld bc d16
-        assert_cyles_equal!([0x01, 0x00, 0x00], 12);
+        assert_cyles_equal!([0x10], 4);              // 0x10 stop
+        assert_cyles_equal!([0x11], 12);             // 0x11 LD DE,d16
+        assert_cyles_equal!([0x12], 8);              // 0x12 ld (de) a
+        assert_cyles_equal!([0x13], 8);              // 0x13 inc de
+        assert_cyles_equal!([0x14], 4);              // 0x14 INC D
+        assert_cyles_equal!([0x15], 4);              // 0x15 DEC D
+        assert_cyles_equal!([0x16, 0x00], 8);        // 0x16 LD D,d8
+        assert_cyles_equal!([0x17], 4);              // 0x17 RLA
+        assert_cyles_equal!([0x18], 12);             // 0x18 JR r8
+        assert_cyles_equal!([0x19], 8);              // 0x19 ADD HL,DE
+        assert_cyles_equal!([0x1a], 8);              // 0x1a LD A,(DE)
+        assert_cyles_equal!([0x1b], 8);              // 0x1b DEC DE
+        assert_cyles_equal!([0x1c], 4);              // 0x1c INC E
+        assert_cyles_equal!([0x1d], 4);              // 0x1d DEC E
+        assert_cyles_equal!([0x1e], 8);              // 0x1e LD E,d8
+        assert_cyles_equal!([0x1f], 4);              // 0x1f RRA
 
-        // 0x02 ld (bc) a
-        assert_cyles_equal!([0x02], 8);
-
-        // 0x03 inc bc
-        assert_cyles_equal!([0x03], 8);
-
-        // 0x10 stop
-        assert_cyles_equal!([0x10], 4);
-
-        // 0x12 ld (de) a
-        assert_cyles_equal!([0x12], 8);
-
-        // 0x13 inc de
-        assert_cyles_equal!([0x13], 8);
-
-        // 0x22 ld (hl+) a
-        assert_cyles_equal!([0x22], 8);
-
-        // 0x23 inc hl
-        assert_cyles_equal!([0x23], 8);
-
-        // 0x32 ld (hl-) a
-        assert_cyles_equal!([0x32], 8);
-
-        // 0x33 inc sp
-        assert_cyles_equal!([0x33], 8);
+        assert_cyles_equal!([0x20, 0x00], 8);        // JR NZ,r8
+        assert_cyles_equal!([0x20, 0x00], 12);       // JR NZ,r8
+        assert_cyles_equal!([0x21], 8);              // LD HL,d16
+        assert_cyles_equal!([0x22], 8);              // 0x22 ld (hl+) a
+        assert_cyles_equal!([0x23], 8);              // 0x23 inc hl
+        assert_cyles_equal!([0x32], 8);              // 0x32 ld (hl-) a
+        assert_cyles_equal!([0x33], 8);              // 0x33 inc sp
     }
 }

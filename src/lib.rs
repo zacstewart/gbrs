@@ -332,13 +332,13 @@ macro_rules! decode_prefixed_op {
     }
 }
 
+pub mod cartridge;
 pub mod cpu;
+pub mod debugger;
 pub mod disasm;
 pub mod mmu;
-pub mod cartridge;
 mod gpu;
 mod joypad;
 mod timer;
 mod memory_map;
 mod data;
-mod debugger;
