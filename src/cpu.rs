@@ -162,7 +162,7 @@ impl Registers {
 
 #[derive(Debug)]
 pub struct CPU {
-  mmu: MMU,
+  pub mmu: MMU,
   clock: Clock,
   pub registers: Registers,
 
@@ -170,7 +170,7 @@ pub struct CPU {
   m: u8,
 
   pub flags: Flags,
-  interrups: bool,
+  pub interrupts: bool,
 
   pub stopped: bool
 }
@@ -185,7 +185,7 @@ impl CPU {
       registers: Registers::new(),
       m: 0,
       flags: flags,
-      interrups: true,
+      interrupts: true,
       stopped: false
     }
   }
@@ -1160,7 +1160,7 @@ impl CPU {
 
   fn reti(&mut self) {
     self.registers.pc = self.pop_word();
-    self.interrups = true
+    self.interrupts = true
   }
 
   fn call_nz<AM:AddressingMode>(&mut self, am: AM) {
@@ -1262,14 +1262,15 @@ impl CPU {
 
   fn halt(&mut self) {
       // TODO: HALT
+      panic!("Halt");
   }
 
   fn disable_interrupts(&mut self) {
-      self.interrups = false;
+      self.interrupts = false;
   }
 
   fn enable_interrupts(&mut self) {
-      self.interrups = true;
+      self.interrupts = true;
   }
 
   // Miscellaneous
