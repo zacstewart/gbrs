@@ -208,7 +208,6 @@ impl CPU {
 
     self.clock.m = (W(self.clock.m) + W(self.m as u16)).0;
     self.mmu.step(self.m);
-    if self.registers.pc == 0x100 { self.mmu.leave_bios(); }
   }
 
   // Fetch from program
