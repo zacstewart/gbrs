@@ -327,7 +327,7 @@ macro_rules! decode_prefixed_op {
             0x7e => { let val = $this.address_hl(); $this.bit(7, val) }
             0x7f => { let val = $this.register_a(); $this.bit(7, val) }
 
-            _ => println!("Prefixed op: {:2x}", $op)
+            _ => panic!("Unimplemented prefixed op: {:2x}", $op)
         }
     }
 }
