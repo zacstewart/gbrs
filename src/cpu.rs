@@ -70,16 +70,35 @@ impl AddressingMode for MemoryAddressingMode {
 }
 
 struct RegisterAdressingMode {
-  value: u8
+  register: Register
 }
 
 impl AddressingMode for RegisterAdressingMode {
-  fn load(&self, _: &mut CPU) -> Data {
-    Data::Byte(self.value)
+  fn load(&self, cpu: &mut CPU) -> Data {
+    let val = match self.register {
+      Register::A => cpu.registers.a,
+      Register::B => cpu.registers.b,
+      Register::C => cpu.registers.c,
+      Register::D => cpu.registers.d,
+      Register::E => cpu.registers.e,
+      Register::H => cpu.registers.h,
+      Register::L => cpu.registers.l
+    };
+    Data::Byte(val)
   }
 
   fn store(&self, cpu: &mut CPU, value: Data) {
-    panic!("Can't write registers yet");
+    if let Data::Byte(b) = value {
+      match self.register {
+        Register::A => cpu.registers.a = b,
+        Register::B => cpu.registers.b = b,
+        Register::C => cpu.registers.c = b,
+        Register::D => cpu.registers.d = b,
+        Register::E => cpu.registers.e = b,
+        Register::H => cpu.registers.h = b,
+        Register::L => cpu.registers.l = b
+      }
+    }
   }
 }
 
@@ -141,6 +160,10 @@ pub struct Registers {
   pub e: u8,
   pub h: u8,
   pub l: u8,
+}
+
+enum Register {
+  A, B, C, D, E, H, L
 }
 
 impl Registers {
@@ -299,43 +322,37 @@ impl CPU {
     self.address(address)
   }
 
-  fn register(&self, value: u8) -> RegisterAdressingMode {
-    RegisterAdressingMode { value: value }
+  fn register(&self, register: Register) -> RegisterAdressingMode {
+    RegisterAdressingMode { register: register }
   }
 
   fn register_b(&self) -> RegisterAdressingMode {
-    let val = self.registers.b;
-    self.register(val)
+    self.register(Register::B)
   }
 
   fn register_c(&self) -> RegisterAdressingMode {
-    let val = self.registers.c;
-    self.register(val)
+    self.register(Register::C)
   }
 
   fn register_d(&self) -> RegisterAdressingMode {
-    let val = self.registers.d;
-    self.register(val)
+    self.register(Register::D)
   }
 
   fn register_e(&self) -> RegisterAdressingMode {
-    let val = self.registers.e;
-    self.register(val)
+    ;
+    self.register(Register::E)
   }
 
   fn register_h(&self) -> RegisterAdressingMode {
-    let val = self.registers.h;
-    self.register(val)
+    self.register(Register::H)
   }
 
   fn register_l(&self) -> RegisterAdressingMode {
-    let val = self.registers.l;
-    self.register(val)
+    self.register(Register::L)
   }
 
   fn register_a(&self) -> RegisterAdressingMode {
-    let val = self.registers.a;
-    self.register(val)
+    self.register(Register::A)
   }
 
   fn register_hl(&self) -> SixteenBitRegisterAdressingMode {
