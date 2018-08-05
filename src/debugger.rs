@@ -1,25 +1,26 @@
-use cpu::{Registers, Flags};
-use memory_map::{ReadByte, WriteByte};
+use memory_map::{ReadByte};
 use std::io::{stdin, stdout, Write};
 use std::process::exit;
-use std::collections::HashSet;
 use cpu::CPU;
 use std::u16;
 use std::str::SplitWhitespace;
 
 #[derive(Clone)]
 enum Command {
+    AddInstrBreak(u8),
+    AddPcBreak(u16),
     Continue,
     DeleteBreak(usize),
     Exit,
+    ListBreakpoints,
     Memory(u16),
     Registers,
     Step,
-    Unknown(String),
+    Invalid(String),
     Watch(Box<Command>)
 }
 
-#[derive(Eq,PartialEq)]
+#[derive(Eq,PartialEq,Debug)]
 enum Breakpoint {
     Pc(u16),
     Instruction(u8)
@@ -70,11 +71,20 @@ impl Debugger {
         }
     }
 
+    fn list_breakpoints(&self) {
+        for (i, bp) in self.breakpoints.iter().enumerate() {
+            println!("{:04}: {:?}", i, bp);
+        }
+    }
+
     fn run_command(&mut self, cpu: &mut CPU, cmd: Command) -> bool {
         match cmd {
             Command::Continue => return false,
+            Command::AddPcBreak(pc) => self.add_pc_break(pc),
+            Command::AddInstrBreak(instr) => self.add_instr_break(instr),
             Command::DeleteBreak(i) => { self.breakpoints.remove(i); },
             Command::Exit => exit(0),
+            Command::ListBreakpoints => self.list_breakpoints(),
             Command::Memory(address) => self.show_memory(cpu, address),
             Command::Registers => self.show_state(cpu),
             Command::Step => {
@@ -82,7 +92,7 @@ impl Debugger {
                 return false;
             },
             Command::Watch(cmd) => self.watches.push(*cmd),
-            Command::Unknown(cmd) => { println!("Invalid command {}", cmd) }
+            Command::Invalid(cmd) => { println!("Invalid command {}", cmd) }
         }
 
         true
@@ -146,24 +156,32 @@ op = {:02x}",
             Some("c") => Command::Continue,
             Some("db") => {
                 match cmd.next().map(|n| usize::from_str_radix(n, 10)) {
-                    Some(Ok(i)) => Command::DeleteBreak(i),
-                    Some(Err(err)) => Command::Unknown("Couldn't parse index".to_string()),
-                    _ => Command::Unknown("Expected breakpoint index".to_string())
+                    Some(Ok(i))    => Command::DeleteBreak(i),
+                    Some(Err(err)) => Command::Invalid("Couldn't parse index".to_string()),
+                    _              => Command::Invalid("Expected breakpoint index".to_string())
                 }
             },
             Some("e") => Command::Exit,
+            Some("ls") => Command::ListBreakpoints,
             Some("m") => {
                 match cmd.next().map(|n| u16::from_str_radix(n, 16)) {
                     Some(Ok(address)) => Command::Memory(address),
-                    Some(Err(err)) => Command::Unknown("Couldn't parse address".to_string()),
-                    _ => Command::Unknown("Expected memory address".to_string())
+                    Some(Err(err))    => Command::Invalid("Couldn't parse address".to_string()),
+                    _                 => Command::Invalid("Expected memory address".to_string())
                 }
             },
             Some("r") => Command::Registers,
             Some("s") => Command::Step,
+            Some("bp") => {
+                match cmd.next().map(|n| u16::from_str_radix(n, 16)) {
+                    Some(Ok(pc)) => Command::AddPcBreak(pc),
+                    Some(Err(_)) => Command::Invalid("Couldn't parse PC".to_string()),
+                    _            => Command::Invalid("Expected PC".to_string())
+                }
+            }
             Some("w") => Command::Watch(Box::new(self.parse_command(cmd))),
-            Some(c) => Command::Unknown(c.to_string()),
-            None => Command::Unknown("Must provide a command".to_string())
+            Some(c) => Command::Invalid(c.to_string()),
+            None => Command::Invalid("Must provide a command".to_string())
         }
     }
 }
