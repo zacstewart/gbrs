@@ -104,7 +104,7 @@ impl ReadByte for MMU {
             0xff4c...0xff7f => { 0 }                                              // Unusable
 
             0xff80...0xfffe => { self.hram[(address & 0x7f) as usize] }           // Zero-page RAM (High RAM, HRAM)
-            0xffff => { self.ie }                                                 // Interrupt enable register
+            0xffff          => { self.ie }                                                 // Interrupt enable register
             _ => { panic!("Read memory out of bounds: {}", address) }
         }
     }
@@ -143,7 +143,7 @@ impl WriteByte for MMU {
             0xff50          => { self.bootroom_enabled = false; }
             0xff51...0xff7f => { }                                                            // Unusable
             0xff80...0xfffe => { self.hram[(address & 0x7f) as usize] = value; }              // Zero-page RAM (High RAM, HRAM)
-            0xffff => { self.ie = value; }                                                    // Interrupt enable register
+            0xffff          => { self.ie = value; }                                                    // Interrupt enable register
             _ => { panic!("Wrote memory out of bounds: {:2x}", address); }
         }
     }
