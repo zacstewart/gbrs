@@ -418,6 +418,10 @@ impl Disassembler {
         println!("RRCA");
     }
 
+    fn rl(&self, loc: String) {
+        println!("RL {}", loc);
+    }
+
     fn rla(&self) {
         println!("RLA");
     }

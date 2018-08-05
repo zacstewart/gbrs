@@ -217,6 +217,11 @@ impl CPU {
     self.m = 0;
     debugger.set_pc(self.registers.pc);
 
+    // Break when leaving bios
+    if self.registers.pc >= 0x00ff {
+      debugger.add_pc_break(self.registers.pc);
+    }
+
     // Automatically break if we enter invalid program address space
     if self.registers.pc >= 0x7fff {
       debugger.add_pc_break(self.registers.pc);
@@ -595,7 +600,6 @@ impl CPU {
       }
       _ => panic!("Unexpected addressing mode")
     }
-    self.m = 8;
   }
 
   fn sub<AM:AddressingMode>(&mut self, am: AM) {
@@ -972,15 +976,37 @@ impl CPU {
 
   // Rotations
 
-  fn rlca(&mut self) {
-    // put bit 7 of a in carry flag
-    if (self.registers.a & 0x80) == 0x80 {
-      self.flags.c = true
-    } else {
-      self.flags.c = false
-    }
+  fn rl<AM: AddressingMode>(&mut self, am: AM) {
+    match am.load(self) {
+      Data::Byte(mut b) => {
+        if b & 0x80 == 0x80 {
+          self.flags.c = true;
+        } else {
+          self.flags.c = false;
+        }
 
-    self.registers.a = (self.registers.a << 1) | (self.registers.a >> 7); // rotate a
+        b = (b << 1) | (b >> 7); // Rotate value left
+
+        if b == 0 {
+          self.flags.z = true;
+        }
+
+        am.store(self, Data::Byte(b));
+
+        self.flags.n = false;
+        self.flags.h = false;
+      }
+      _ => panic!()
+    }
+  }
+
+  fn rlca(&mut self) {
+    let am = self.register_a();
+    self.rl(am);
+
+    self.flags.z = false;
+    self.flags.n = false;
+    self.flags.h = false;
   }
 
   fn rla(&mut self) {

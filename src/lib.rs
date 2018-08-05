@@ -259,6 +259,8 @@ macro_rules! decode_op {
 macro_rules! decode_prefixed_op {
     ($op:expr, $this:ident) => {
         match $op {
+            0x11 => { let val = $this.register_c(); $this.rl(val) }
+
             0x40 => { let val = $this.register_b(); $this.bit(0, val) }
             0x41 => { let val = $this.register_c(); $this.bit(0, val) }
             0x42 => { let val = $this.register_d(); $this.bit(0, val) }
