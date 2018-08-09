@@ -298,34 +298,6 @@ impl Disassembler {
         println!("DEC SP");
     }
 
-    fn inc_b(&self) {
-        println!("INC B");
-    }
-
-    fn inc_c(&self) {
-        println!("INC C");
-    }
-
-    fn inc_d(&self) {
-        println!("INC D");
-    }
-
-    fn inc_e(&self) {
-        println!("INC E");
-    }
-
-    fn inc_h(&self) {
-        println!("INC H");
-    }
-
-    fn inc_l(&self) {
-        println!("INC L");
-    }
-
-    fn inc_a(&self) {
-        println!("INC A");
-    }
-
     fn dec_b(&self) {
         println!("DEC B");
     }

@@ -659,32 +659,37 @@ impl CPU {
   }
 
   fn inc<AM:AddressingMode>(&mut self, am: AM) {
-    match am.load(self) {
-      Data::Byte(byte) => {
-        let byte = (W(byte) + W(1)).0;
-        am.store(self, Data::Byte(byte));
-      },
-      _ => panic!()
-    }
-    self.m += 12;
+      match am.load(self) {
+          Data::Byte(mut b) => {
+              // Carry 3rd bit?
+              self.flags.h = (b & 0x7) == 0x7;
+
+              b = (W(b) + W(1)).0;
+
+              self.flags.z = b == 0;
+              self.flags.n = false;
+
+              am.store(self, Data::Byte(b));
+          }
+          _ => panic!("Unexpected addressing mode")
+      }
   }
 
   fn dec<AM:AddressingMode>(&mut self, am: AM) {
-    match am.load(self) {
-      Data::Byte(byte) => {
-        if byte % 15 == 0 {
-            self.flags.h = true
-        }
-        let byte = (W(byte) - W(1)).0;
-        am.store(self, Data::Byte(byte));
-        if byte == 0 {
-          self.flags.z = true;
-        }
-        self.flags.n = true;
-      },
-      _ => panic!()
-    }
-    self.m += 12;
+      match am.load(self) {
+          Data::Byte(mut b) => {
+              // Borrow from 4th bit?
+              self.flags.h = (b & 0x8) == 0x8;
+
+              b = (W(b) - W(1)).0;
+
+              self.flags.z = b == 0;
+              self.flags.n = true;
+
+              am.store(self, Data::Byte(b));
+          },
+          _ => panic!("Unexpected addressing mode")
+      }
   }
 
   // Ops
@@ -809,71 +814,6 @@ impl CPU {
     self.registers.l = (W(self.registers.l) + W(1)).0;
   }
 
-  // 8-bit INCs
-
-  fn inc_b(&mut self) {
-    self.registers.b = (W(self.registers.b) + W(1)).0;
-    if self.registers.b == 0 {
-      self.flags.z = true;
-    } else {
-      self.flags.z = false;
-    }
-  }
-
-  fn inc_c(&mut self) {
-    self.registers.c = (W(self.registers.c) + W(1)).0;
-    if self.registers.c == 0 {
-      self.flags.z = true;
-    } else {
-      self.flags.z = false;
-    }
-  }
-
-  fn inc_d(&mut self) {
-    self.registers.d = (W(self.registers.d) + W(1)).0;
-    if self.registers.d == 0 {
-      self.flags.z = true;
-    } else {
-      self.flags.z = false;
-    }
-  }
-
-  fn inc_e(&mut self) {
-    self.registers.e = (W(self.registers.e) + W(1)).0;
-    if self.registers.e == 0 {
-      self.flags.z = true;
-    } else {
-      self.flags.z = false;
-    }
-  }
-
-  fn inc_h(&mut self) {
-    self.registers.h = (W(self.registers.h) + W(1)).0;
-    if self.registers.h == 0 {
-      self.flags.z = true;
-    } else {
-      self.flags.z = false;
-    }
-  }
-
-  fn inc_l(&mut self) {
-    self.registers.l = (W(self.registers.l) + W(1)).0;
-    if self.registers.l == 0 {
-      self.flags.z = true;
-    } else {
-      self.flags.z = false;
-    }
-  }
-
-  fn inc_a(&mut self) {
-    self.registers.a = (W(self.registers.a) + W(1)).0;
-    if self.registers.a == 0 {
-      self.flags.z = true;
-    } else {
-      self.flags.z = false;
-    }
-  }
-
   // 16-bit DECs
 
   fn dec_bc(&mut self) {
@@ -907,71 +847,6 @@ impl CPU {
       self.registers.h = (W(self.registers.h) - W(1)).0
     }
     self.registers.l = (W(self.registers.l) - W(1)).0;
-  }
-
-  // 8-bit DECs
-
-  fn dec_b(&mut self) {
-    self.registers.b = (W(self.registers.b) - W(1)).0;
-    if self.registers.b == 0 {
-      self.flags.z = true;
-    } else {
-      self.flags.z = false;
-    }
-  }
-
-  fn dec_c(&mut self) {
-    self.registers.c = (W(self.registers.c) - W(1)).0;
-    if self.registers.c == 0 {
-      self.flags.z = true;
-    } else {
-      self.flags.z = false;
-    }
-  }
-
-  fn dec_d(&mut self) {
-    self.registers.d = (W(self.registers.d) - W(1)).0;
-    if self.registers.d  == 0 {
-      self.flags.z = true;
-    } else {
-      self.flags.z = false;
-    }
-  }
-
-  fn dec_e(&mut self) {
-    self.registers.e = (W(self.registers.e) - W(1)).0;
-    if self.registers.e  == 0 {
-      self.flags.z = true;
-    } else {
-      self.flags.z = false;
-    }
-  }
-
-  fn dec_h(&mut self) {
-    self.registers.h = (W(self.registers.h) - W(1)).0;
-    if self.registers.h  == 0 {
-      self.flags.z = true;
-    } else {
-      self.flags.z = false;
-    }
-  }
-
-  fn dec_l(&mut self) {
-    self.registers.l = (W(self.registers.l) - W(1)).0;
-    if self.registers.l  == 0 {
-      self.flags.z = true;
-    } else {
-      self.flags.z = false;
-    }
-  }
-
-  fn dec_a(&mut self) {
-    self.registers.a = (W(self.registers.a) - W(1)).0;
-    if self.registers.a  == 0 {
-      self.flags.z = true;
-    } else {
-      self.flags.z = false;
-    }
   }
 
   // Rotations
