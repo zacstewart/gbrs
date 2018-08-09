@@ -61,16 +61,16 @@ impl MMU {
     }
 
     pub fn read_word(&self, address: u16) -> u16 {
-        let ls = self.read_byte(address) as u16;
-        let ms = (self.read_byte(address + 1) as u16) << 8;
-        ms | ls
+        let lower = self.read_byte(address) as u16;
+        let upper = (self.read_byte(address + 1) as u16) << 8;
+        upper | lower
     }
 
     pub fn write_word(&mut self, address: u16, value: u16) {
-        let upper = ((value & 0xff00) >> 8) as u8;
         let lower = (value & 0xff) as u8;
-        self.write_byte(address, upper);
+        let upper = ((value & 0xff00) >> 8) as u8;
         self.write_byte(address, lower);
+        self.write_byte(address + 1, upper);
     }
 }
 
