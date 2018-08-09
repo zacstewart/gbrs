@@ -264,13 +264,13 @@ impl CPU {
 
   fn pop_word(&mut self) -> u16 {
     let value = self.mmu.read_word(self.registers.sp);
-    let sp = (W(self.registers.sp) + W(2)).0;
-    return value;
+    self.registers.sp = (W(self.registers.sp) + W(2)).0;
+    value
   }
 
   fn push_word(&mut self, value: u16) {
-    self.mmu.write_word(self.registers.sp, value);
     self.registers.sp = (W(self.registers.sp) - W(2)).0;
+    self.mmu.write_word(self.registers.sp, value);
   }
 
   // Addressing
