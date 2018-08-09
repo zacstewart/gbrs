@@ -1125,10 +1125,12 @@ impl CPU {
   }
 
   fn call<AM:AddressingMode>(&mut self, am: AM) {
-    let pc = self.registers.pc;
-    self.push_word(pc);
-    self.registers.pc = match am.load(self) {
-      Data::Word(w) => w,
+    match am.load(self) {
+      Data::Word(addr) => {
+        let pc = self.registers.pc;
+        self.push_word(pc);
+        self.registers.pc = addr;
+      }
       _ => panic!("Unexpected addressing mode!")
     };
   }
