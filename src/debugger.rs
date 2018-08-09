@@ -73,7 +73,10 @@ impl Debugger {
 
     fn list_breakpoints(&self) {
         for (i, bp) in self.breakpoints.iter().enumerate() {
-            println!("{:04}: {:?}", i, bp);
+            match bp {
+                Breakpoint::Pc(pc)          => println!("[{:03}] pc = {:04x}", i, pc),
+                Breakpoint::Instruction(op) => println!("[{:03}] op = {:02x}", i, op)
+            }
         }
     }
 
