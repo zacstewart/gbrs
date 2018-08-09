@@ -854,51 +854,50 @@ impl CPU {
   fn rl<AM: AddressingMode>(&mut self, am: AM) {
     match am.load(self) {
       Data::Byte(mut b) => {
-        if b & 0x80 == 0x80 {
-          self.flags.c = true;
-        } else {
-          self.flags.c = false;
-        }
+        let old_c = self.flags.c;
+        self.flags.c = b & 0x80 == 0x80;
 
-        b = (b << 1) | (b >> 7); // Rotate value left
-
-        if b == 0 {
-          self.flags.z = true;
-        }
+        b = (b << 1) | (if old_c { 1 } else { 0 }); // Rotate value left
 
         am.store(self, Data::Byte(b));
 
+        self.flags.z = b == 0;
         self.flags.n = false;
         self.flags.h = false;
       }
-      _ => panic!()
+      _ => panic!("Unexpected addressing mode")
     }
   }
 
+  fn rlc<AM: AddressingMode>(&mut self, am: AM) {
+    match am.load(self) {
+      Data::Byte(mut b) => {
+        self.flags.c = b & 0x80 == 0x80;
+
+        b = (b << 1) | (b >> 7); // Rotate value left
+
+        am.store(self, Data::Byte(b));
+
+        self.flags.z = b == 0;
+        self.flags.n = false;
+        self.flags.h = false;
+      }
+      _ => panic!("Unexpected addressing mode")
+    }
+  }
+
+  /// RLCA differs from RLC A in that it always clears the z flag
   fn rlca(&mut self) {
     let am = self.register_a();
-    self.rl(am);
-
+    self.rlc(am);
     self.flags.z = false;
-    self.flags.n = false;
-    self.flags.h = false;
   }
 
+  /// CLA differs from RL A in that it always clears the z flag
   fn rla(&mut self) {
-    let old_f: u8;
-    if self.flags.c {
-      old_f = 1;
-    } else {
-      old_f = 0;
-    }
-
-    if (self.registers.a & 0x80) == 0x80 {
-      self.flags.c = true;
-    } else {
-      self.flags.c = false;
-    }
-
-    self.registers.a = (self.registers.a << 1) | old_f; // rotate a left, move f to end of a
+    let am = self.register_a();
+    self.rl(am);
+    self.flags.z = false;
   }
 
   fn rrca(&mut self) {
