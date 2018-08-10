@@ -22,7 +22,7 @@ fn main() {
             println!("Loading ROM and beginning emulation");
             let mut debugger = Debugger::new();
             let mut cpu: CPU = CPU::new(mmu);
-            debugger.add_pc_break(0x022b);
+
             while !cpu.stopped {
                 cpu.step(&mut debugger);
             }

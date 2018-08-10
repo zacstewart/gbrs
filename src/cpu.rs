@@ -217,11 +217,6 @@ impl CPU {
     self.m = 0;
     debugger.set_pc(self.registers.pc);
 
-    // Break when leaving bios
-    if self.registers.pc >= 0x00ff {
-      debugger.add_pc_break(self.registers.pc);
-    }
-
     // Automatically break if we enter invalid program address space
     if self.registers.pc >= 0x7fff {
       debugger.add_pc_break(self.registers.pc);
