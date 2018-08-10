@@ -1,6 +1,3 @@
-#[macro_use]
-extern crate log;
-
 macro_rules! decode_op {
     ($op:expr, $this:ident) => {
         match $op {

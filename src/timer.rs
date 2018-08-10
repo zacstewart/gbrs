@@ -33,7 +33,6 @@ impl Timer {
     }
 
     pub fn step(&mut self, clock: u8) {
-        return;
         self.sub = self.sub + clock;
         if self.sub > 15 {
             self.internal_clock = self.internal_clock + 1;

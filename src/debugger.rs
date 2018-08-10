@@ -160,7 +160,7 @@ op = {:02x}",
             Some("db") => {
                 match cmd.next().map(|n| usize::from_str_radix(n, 10)) {
                     Some(Ok(i))    => Command::DeleteBreak(i),
-                    Some(Err(err)) => Command::Invalid("Couldn't parse index".to_string()),
+                    Some(Err(_)) => Command::Invalid("Couldn't parse index".to_string()),
                     _              => Command::Invalid("Expected breakpoint index".to_string())
                 }
             },
@@ -169,7 +169,7 @@ op = {:02x}",
             Some("m") => {
                 match cmd.next().map(|n| u16::from_str_radix(n, 16)) {
                     Some(Ok(address)) => Command::Memory(address),
-                    Some(Err(err))    => Command::Invalid("Couldn't parse address".to_string()),
+                    Some(Err(_))    => Command::Invalid("Couldn't parse address".to_string()),
                     _                 => Command::Invalid("Expected memory address".to_string())
                 }
             },

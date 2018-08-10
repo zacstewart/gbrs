@@ -111,7 +111,7 @@ impl AddressingMode for SixteenBitRegisterAdressingMode {
     Data::Word(self.value)
   }
 
-  fn store(&self, cpu: &mut CPU, value: Data) {
+  fn store(&self, _cpu: &mut CPU, _value: Data) {
     panic!("Can't write registers yet");
   }
 }
